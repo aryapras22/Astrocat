@@ -6,165 +6,160 @@
 //
 
 import SpriteKit
-import GameKit
 import GameplayKit
 
 class GameScene: SKScene {
     var entities = [GKEntity]()
-    var graphs = [String : GKGraph]()
-    private var lastUpdateTime : TimeInterval = 0
-    private var jumpButton: SKShapeNode?
+    var graphs = [String : GKGraph]() 
+    private var lastUpdateTime: TimeInterval = 0
+    
+    // UI Constants & Nodes
+    private let joystickRadius: CGFloat = 100
     private var joystickBase: SKShapeNode?
     private var joystickKnob: SKShapeNode?
-    private let buttonRadius: CGFloat = 60
+    private var joystickHome: CGPoint = .zero
+    private var jumpButton: SKShapeNode?
+    
+    private var activeJoystickTouch: UITouch?
     
     var playerMoveComponent: MoveComponent? {
         return entities.first?.component(ofType: MoveComponent.self)
     }
-    
-    func textureFromSymbol(name: String, color: UIColor) -> SKTexture? {
-        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .bold)
-        guard let symbol = UIImage(systemName: name, withConfiguration: config) else { return nil }
-        
-        let renderer = UIGraphicsImageRenderer(size: symbol.size)
-        let renderedImage = renderer.image { context in
-            color.set()
-            symbol.withRenderingMode(.alwaysTemplate).draw(at: .zero)
-        }
-        
-        return SKTexture(image: renderedImage)
-    }
-    
-    func setupUI() {
-        let cornerMargin: CGFloat = 150
-        
-        joystickBase = SKShapeNode(circleOfRadius: buttonRadius)
-        if let base = joystickBase {
-            base.position = CGPoint(x: frame.minX + cornerMargin, y: frame.minY + cornerMargin)
-            base.strokeColor = .white
-            base.fillColor = .white.withAlphaComponent(0.1)
-            base.zPosition = 100
-            addChild(base)
-            
-            joystickKnob = SKShapeNode(circleOfRadius: 30)
-            if let knob = joystickKnob {
-                knob.fillColor = .white.withAlphaComponent(0.8)
-                knob.zPosition = 1
-                base.addChild(knob)
-            }
-        }
-        
-        let jumpBase = SKShapeNode(circleOfRadius: buttonRadius)
-        jumpBase.position = CGPoint(x: frame.maxX - cornerMargin, y: frame.minY + cornerMargin)
-        jumpBase.strokeColor = .white
-        jumpBase.fillColor = .white.withAlphaComponent(0.1)
-        jumpBase.zPosition = 100
-        self.jumpButton = jumpBase
-        addChild(jumpBase)
-        
-        if let whiteTexture = textureFromSymbol(name: "chevron.up.2", color: .white) {
-            let icon = SKSpriteNode(texture: whiteTexture)
-            icon.zPosition = 1
-            
-            jumpBase.addChild(icon)
-        }
-    }
-    
-    func setupPlayer() {
-        if let existingNode = self.childNode(withName: "//Player") as? SKSpriteNode {
-            existingNode.texture?.filteringMode = .nearest
-            
-            let playerEntity = GKEntity()
-            
-            let nodeComponent = GKSKNodeComponent(node: existingNode)
-            playerEntity.addComponent(nodeComponent)
-            
-            let moveComponent = MoveComponent()
-            playerEntity.addComponent(moveComponent)
-            
-            self.entities.append(playerEntity)
-        }
-    }
+
+    // MARK: - Setup
     
     override func didMove(to view: SKView) {
         super.didMove(to: view)
         setupUI()
         setupPlayer()
     }
-    
-    func updateJoystick(touch: UITouch) {
-        guard let base = joystickBase, let knob = joystickKnob else { return }
+
+    private func setupUI() {
+        let margin: CGFloat = 200
+        joystickHome = CGPoint(x: frame.minX + margin, y: frame.minY + margin)
         
-        let location = touch.location(in: base)
-        let distance = sqrt(pow(location.x, 2) + pow(location.y, 2))
+        // Joystick Setup
+        let base = SKShapeNode(circleOfRadius: 60)
+        base.position = joystickHome
+        base.strokeColor = .white
+        base.fillColor = .white.withAlphaComponent(0.1)
+        base.zPosition = 1000
+        addChild(base)
+        joystickBase = base
         
-        if distance < buttonRadius {
-            knob.position = location
-        } else {
-            let angle = atan2(location.y, location.x)
-            knob.position = CGPoint(x: cos(angle) * buttonRadius, y: sin(angle) * buttonRadius)
+        let knob = SKShapeNode(circleOfRadius: 30)
+        knob.fillColor = .white.withAlphaComponent(0.8)
+        knob.zPosition = 1
+        base.addChild(knob)
+        joystickKnob = knob
+        
+        // Jump Button Setup
+        let jBtn = SKShapeNode(circleOfRadius: 60)
+        jBtn.position = CGPoint(x: frame.maxX - margin, y: frame.minY + margin)
+        jBtn.strokeColor = .white
+        jBtn.fillColor = .white.withAlphaComponent(0.1)
+        jBtn.zPosition = 1000
+        addChild(jBtn)
+        jumpButton = jBtn
+        
+        if let iconTex = textureFromSymbol(name: "chevron.up.2", color: .white) {
+            let icon = SKSpriteNode(texture: iconTex)
+            icon.zPosition = 1
+            jBtn.addChild(icon)
         }
-        
-        playerMoveComponent?.direction = knob.position.x / buttonRadius
     }
+
+    private func setupPlayer() {
+        if let node = childNode(withName: "//Player") as? SKSpriteNode {
+            node.texture?.filteringMode = .nearest
+            
+            let entity = GKEntity()
+            entity.addComponent(GKSKNodeComponent(node: node))
+            entity.addComponent(MoveComponent())
+            
+            entities.append(entity) //
+        }
+    }
+
+    // MARK: - Input Handling
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
+            let loc = touch.location(in: self)
             
-            if jumpButton?.contains(location) == true {
-                jumpButton?.run(SKAction.group([
+            if loc.x < 0 && activeJoystickTouch == nil {
+                activeJoystickTouch = touch
+                updateJoystick(touch: touch)
+            } else if jumpButton?.contains(loc) == true {
+                jumpButton?.run(SKAction.sequence([
                     SKAction.scale(to: 0.9, duration: 0.1),
-                    SKAction.colorize(with: .white, colorBlendFactor: 0.2, duration: 0.1)
+                    SKAction.colorize(with: .white, colorBlendFactor: 0.3, duration: 0.1)
                 ]))
-                
                 playerMoveComponent?.jump()
             }
-            
-            if joystickBase?.contains(location) == true {
-                updateJoystick(touch: touch)
-            }
         }
     }
-    
+
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches {
-            let location = touch.location(in: self)
-            if joystickBase?.contains(location) == true {
-                updateJoystick(touch: touch)
-            }
+        for touch in touches where touch == activeJoystickTouch {
+            updateJoystick(touch: touch)
         }
     }
-    
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
-            
-            if location.x > 0 {
+            if touch == activeJoystickTouch {
+                activeJoystickTouch = nil
+                joystickKnob?.run(SKAction.move(to: .zero, duration: 0.1))
+                playerMoveComponent?.direction = 0
+            } else if touch.location(in: self).x > 0 {
                 jumpButton?.run(SKAction.group([
                     SKAction.scale(to: 1.0, duration: 0.1),
                     SKAction.colorize(withColorBlendFactor: 0, duration: 0.1)
                 ]))
             }
-            
-            if location.x < 0 {
-                joystickKnob?.run(SKAction.move(to: .zero, duration: 0.1))
-                playerMoveComponent?.direction = 0
-            }
         }
     }
-    
+
+    private func updateJoystick(touch: UITouch) {
+        guard let knob = joystickKnob else { return }
+        
+        let touchLoc = touch.location(in: self)
+        let dx = touchLoc.x - joystickHome.x
+        let dy = touchLoc.y - joystickHome.y
+        let dist = sqrt(dx*dx + dy*dy)
+        let angle = atan2(dy, dx)
+        
+        // Clamp Knob Visually
+        let knobDist = min(dist, 60)
+        knob.position = CGPoint(x: cos(angle) * knobDist, y: sin(angle) * knobDist)
+        
+        // Normalize Direction (-1 to 1)
+        let rawDir = dx / 60
+        playerMoveComponent?.direction = max(-1.0, min(1.0, rawDir))
+    }
+
+    // MARK: - Helpers & Loop
+
+    private func textureFromSymbol(name: String, color: UIColor) -> SKTexture? {
+        let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .bold)
+        guard let sym = UIImage(systemName: name, withConfiguration: config) else { return nil }
+        
+        let renderer = UIGraphicsImageRenderer(size: sym.size)
+        let img = renderer.image { _ in
+            color.set()
+            sym.withRenderingMode(.alwaysTemplate).draw(at: .zero)
+        }
+        return SKTexture(image: img)
+    }
+
     override func update(_ currentTime: TimeInterval) {
-        if (self.lastUpdateTime == 0) {
-            self.lastUpdateTime = currentTime
+        if lastUpdateTime == 0 { lastUpdateTime = currentTime }
+        let dt = currentTime - lastUpdateTime
+        
+        for entity in entities {
+            entity.update(deltaTime: dt) //
         }
-        
-        let dt = currentTime - self.lastUpdateTime
-        
-        for entity in self.entities {
-            entity.update(deltaTime: dt)
-        }
-        
-        self.lastUpdateTime = currentTime
+        lastUpdateTime = currentTime
     }
 }
