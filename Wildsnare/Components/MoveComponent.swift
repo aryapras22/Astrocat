@@ -10,12 +10,14 @@ import GameplayKit
 
 class MoveComponent: GKComponent {
     let speed: CGFloat = 200
-    let jumpSpeed: CGFloat = 50
+    let jumpImpulse: CGFloat = 100
     var direction: CGFloat = 0
     
     func jump() {
         guard let node = entity?.component(ofType: GKSKNodeComponent.self)?.node else { return }
-        node.physicsBody?.applyImpulse(CGVector(dx: 0, dy: jumpSpeed))
+        if abs(node.physicsBody?.velocity.dy ?? 0) < 0.1 {
+            node.physicsBody?.applyImpulse(CGVector(dx: 0, dy: jumpImpulse))
+        }
     }
     
     override func update(deltaTime seconds: TimeInterval) {
