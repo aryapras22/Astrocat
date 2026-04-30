@@ -9,7 +9,7 @@ import SpriteKit
 import GameplayKit
 
 class MoveComponent: GKComponent {
-    let speed: CGFloat = 100
+    let speed: CGFloat = 200
     let jumpSpeed: CGFloat = 50
     var direction: CGFloat = 0
     
@@ -24,5 +24,11 @@ class MoveComponent: GKComponent {
         guard let node = entity?.component(ofType: GKSKNodeComponent.self)?.node else { return }
         
         node.position.x += direction * speed * CGFloat(seconds)
+        
+        if direction > 0 {
+            node.xScale = abs(node.xScale)
+        } else if direction < 0 {
+            node.xScale = -abs(node.xScale)
+        }
     }
 }

@@ -45,6 +45,8 @@ class GameScene: SKScene {
     
     func setupPlayer() {
         if let existingNode = self.childNode(withName: "//Player") as? SKSpriteNode {
+            existingNode.texture?.filteringMode = .nearest
+            
             let playerEntity = GKEntity()
             
             let nodeComponent = GKSKNodeComponent(node: existingNode)
