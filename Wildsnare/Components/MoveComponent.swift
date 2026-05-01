@@ -5,8 +5,8 @@
 //  Created by Valentino Manuel Gunawan on 30/04/26.
 //
 
-import SpriteKit
 import GameplayKit
+import SpriteKit
 
 class MoveComponent: GKComponent {
     let speed: CGFloat = 200
@@ -15,6 +15,7 @@ class MoveComponent: GKComponent {
     
     func jump() {
         guard let node = entity?.component(ofType: GKSKNodeComponent.self)?.node else { return }
+        
         if abs(node.physicsBody?.velocity.dy ?? 0) < 0.1 {
             node.physicsBody?.applyImpulse(CGVector(dx: 0, dy: jumpImpulse))
         }

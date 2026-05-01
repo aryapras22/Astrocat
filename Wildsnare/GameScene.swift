@@ -10,7 +10,7 @@ import GameplayKit
 
 class GameScene: SKScene {
     var entities = [GKEntity]()
-    var graphs = [String : GKGraph]() 
+    var graphs = [String : GKGraph]()
     private var lastUpdateTime: TimeInterval = 0
     
     // UI Constants & Nodes
@@ -19,24 +19,32 @@ class GameScene: SKScene {
     private var joystickKnob: SKShapeNode?
     private var joystickHome: CGPoint = .zero
     private var jumpButton: SKShapeNode?
-    
     private var activeJoystickTouch: UITouch?
+    private let mainCamera = SKCameraNode()
     
     var playerMoveComponent: MoveComponent? {
         return entities.first?.component(ofType: MoveComponent.self)
     }
-
+    
     // MARK: - Setup
     
     override func didMove(to view: SKView) {
         super.didMove(to: view)
+        setupCamera()
         setupUI()
         setupPlayer()
     }
-
+    
+    private func setupCamera() {
+        addChild(mainCamera)
+        self.camera = mainCamera
+    }
+    
     private func setupUI() {
-        let margin: CGFloat = 200
-        joystickHome = CGPoint(x: frame.minX + margin, y: frame.minY + margin)
+        let marginX = frame.width / 2 - 200
+        let marginY = frame.height / 2 - 200
+        
+        joystickHome = CGPoint(x: -marginX, y: -marginY)
         
         // Joystick Setup
         let base = SKShapeNode(circleOfRadius: 60)
@@ -44,68 +52,85 @@ class GameScene: SKScene {
         base.strokeColor = .white
         base.fillColor = .white.withAlphaComponent(0.1)
         base.zPosition = 1000
-        addChild(base)
-        joystickBase = base
         
+        // Joystick Knob
         let knob = SKShapeNode(circleOfRadius: 30)
         knob.fillColor = .white.withAlphaComponent(0.8)
         knob.zPosition = 1
         base.addChild(knob)
         joystickKnob = knob
         
+        // Add Joystick to Camera
+        mainCamera.addChild(base)
+        joystickBase = base
+        
         // Jump Button Setup
         let jBtn = SKShapeNode(circleOfRadius: 60)
-        jBtn.position = CGPoint(x: frame.maxX - margin, y: frame.minY + margin)
+        jBtn.position = CGPoint(x: marginX, y: -marginY)
         jBtn.strokeColor = .white
         jBtn.fillColor = .white.withAlphaComponent(0.1)
         jBtn.zPosition = 1000
-        addChild(jBtn)
+        
+        // Add Jump Button to Camera
+        mainCamera.addChild(jBtn)
         jumpButton = jBtn
         
+        // Render Jump Icon
         if let iconTex = textureFromSymbol(name: "chevron.up.2", color: .white) {
             let icon = SKSpriteNode(texture: iconTex)
             icon.zPosition = 1
             jBtn.addChild(icon)
         }
     }
-
+    
     private func setupPlayer() {
         if let node = childNode(withName: "//Player") as? SKSpriteNode {
             node.texture?.filteringMode = .nearest
             
+            // Setup Player Entity & Movement
             let entity = GKEntity()
             entity.addComponent(GKSKNodeComponent(node: node))
             entity.addComponent(MoveComponent())
             
-            entities.append(entity) //
+            // Setup Player Camera
+            let camComponent = CameraComponent(camera: mainCamera)
+            camComponent.target = node
+            entity.addComponent(camComponent)
+            
+            entities.append(entity)
         }
     }
-
+    
     // MARK: - Input Handling
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let loc = touch.location(in: self)
+            let locInCamera = touch.location(in: mainCamera)
+            let locInScene = touch.location(in: self)
             
-            if loc.x < 0 && activeJoystickTouch == nil {
+            
+            if locInScene.x < 0 && activeJoystickTouch == nil {
                 activeJoystickTouch = touch
                 updateJoystick(touch: touch)
-            } else if jumpButton?.contains(loc) == true {
+            }
+            
+            else if jumpButton?.contains(locInCamera) == true {
                 jumpButton?.run(SKAction.sequence([
                     SKAction.scale(to: 0.9, duration: 0.1),
-                    SKAction.colorize(with: .white, colorBlendFactor: 0.3, duration: 0.1)
+                    SKAction.wait(forDuration: 0.1),
+                    SKAction.scale(to: 1.0, duration: 0.1)
                 ]))
                 playerMoveComponent?.jump()
             }
         }
     }
-
+    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches where touch == activeJoystickTouch {
             updateJoystick(touch: touch)
         }
     }
-
+    
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
             if touch == activeJoystickTouch {
@@ -120,27 +145,26 @@ class GameScene: SKScene {
             }
         }
     }
-
+    
     private func updateJoystick(touch: UITouch) {
         guard let knob = joystickKnob else { return }
         
-        let touchLoc = touch.location(in: self)
+        let touchLoc = touch.location(in: mainCamera)
+        
         let dx = touchLoc.x - joystickHome.x
         let dy = touchLoc.y - joystickHome.y
         let dist = sqrt(dx*dx + dy*dy)
         let angle = atan2(dy, dx)
         
-        // Clamp Knob Visually
         let knobDist = min(dist, 60)
         knob.position = CGPoint(x: cos(angle) * knobDist, y: sin(angle) * knobDist)
         
-        // Normalize Direction (-1 to 1)
         let rawDir = dx / 60
         playerMoveComponent?.direction = max(-1.0, min(1.0, rawDir))
     }
-
+    
     // MARK: - Helpers & Loop
-
+    
     private func textureFromSymbol(name: String, color: UIColor) -> SKTexture? {
         let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .bold)
         guard let sym = UIImage(systemName: name, withConfiguration: config) else { return nil }
@@ -152,7 +176,7 @@ class GameScene: SKScene {
         }
         return SKTexture(image: img)
     }
-
+    
     override func update(_ currentTime: TimeInterval) {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
