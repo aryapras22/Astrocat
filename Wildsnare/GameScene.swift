@@ -51,7 +51,7 @@ class GameScene: SKScene {
         base.position = joystickHome
         base.strokeColor = .white
         base.fillColor = .white.withAlphaComponent(0.1)
-        base.zPosition = 1000
+        base.zPosition = 1
         
         // Joystick Knob
         let knob = SKShapeNode(circleOfRadius: 30)
@@ -69,7 +69,7 @@ class GameScene: SKScene {
         jBtn.position = CGPoint(x: marginX, y: -marginY)
         jBtn.strokeColor = .white
         jBtn.fillColor = .white.withAlphaComponent(0.1)
-        jBtn.zPosition = 1000
+        jBtn.zPosition = 1
         
         // Add Jump Button to Camera
         mainCamera.addChild(jBtn)
