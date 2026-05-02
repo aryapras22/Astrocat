@@ -39,8 +39,6 @@ class GameScene: SKScene {
     
     private func setupPlayer() {
         if let node = childNode(withName: "//Player") as? SKSpriteNode {
-            node.texture?.filteringMode = .nearest
-            
             let playerEntity = PlayerEntity(node: node, camera: mainCamera)
             self.player = playerEntity
             

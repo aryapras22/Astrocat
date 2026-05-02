@@ -12,6 +12,8 @@ class PlayerEntity: GKEntity {
     init(node: SKSpriteNode, camera: SKCameraNode) {
         super.init()
         
+        node.texture?.filteringMode = .nearest
+        
         let visualComponent = GKSKNodeComponent(node: node)
         addComponent(visualComponent)
         

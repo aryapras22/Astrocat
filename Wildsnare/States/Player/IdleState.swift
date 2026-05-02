@@ -5,3 +5,29 @@
 //  Created by Valentino Manuel Gunawan on 02/05/26.
 //
 
+import GameplayKit
+
+class IdleState: GKState {
+    weak var entity: GKEntity?
+    
+    init(entity: GKEntity) {
+        self.entity = entity
+        super.init()
+    }
+    
+    override func isValidNextState(_ stateClass: AnyClass) -> Bool {
+        return stateClass == JumpingState.self
+    }
+    
+    override func didEnter(from previousState: GKState?) {
+        print("Idle Animation")
+    }
+    
+    override func update(deltaTime seconds: TimeInterval) {
+        guard let input = entity?.component(ofType: InputComponent.self) else { return }
+        
+        if input.wantsToJump {
+            stateMachine?.enter(JumpingState.self)
+        }
+    }
+}

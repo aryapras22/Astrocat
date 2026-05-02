@@ -10,7 +10,19 @@ import SpriteKit
 
 class MoveComponent: GKComponent {
     let speed: CGFloat = 200
-    let jumpImpulse: CGFloat = 100
+    
+    var stateMachine: GKStateMachine?
+    
+    override func didAddToEntity() {
+        guard let entity = entity else { return }
+        
+        stateMachine = GKStateMachine(states: [
+            IdleState(entity: entity),
+            JumpingState(entity: entity)
+        ])
+        
+        stateMachine?.enter(IdleState.self)
+    }
     
     override func update(deltaTime seconds: TimeInterval) {
         super.update(deltaTime: seconds)
@@ -31,13 +43,7 @@ class MoveComponent: GKComponent {
             node.xScale = -abs(node.xScale)
         }
         
-        // Handle Jump
-        if input.wantsToJump {
-            if abs(node.physicsBody?.velocity.dy ?? 0) < 0.1 {
-                node.physicsBody?.applyImpulse(CGVector(dx: 0, dy: jumpImpulse))
-            }
-            
-            input.wantsToJump = false
-        }
+        // Handle State Logic
+        stateMachine?.update(deltaTime: seconds)
     }
 }
