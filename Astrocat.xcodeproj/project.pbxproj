@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		89357AFA2FA39EAD00EFEEC4 /* Wildsnare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wildsnare.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Astrocat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		89357B0F2FA39EAE00EFEEC4 /* Exceptions for "Wildsnare" folder in "Wildsnare" target */ = {
+		89357B0F2FA39EAE00EFEEC4 /* Exceptions for "Astrocat" folder in "Astrocat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 89357AF92FA39EAD00EFEEC4 /* Wildsnare */;
+			target = 89357AF92FA39EAD00EFEEC4 /* Astrocat */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		89357AFC2FA39EAD00EFEEC4 /* Wildsnare */ = {
+		89357AFC2FA39EAD00EFEEC4 /* Astrocat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				89357B0F2FA39EAE00EFEEC4 /* Exceptions for "Wildsnare" folder in "Wildsnare" target */,
+				89357B0F2FA39EAE00EFEEC4 /* Exceptions for "Astrocat" folder in "Astrocat" target */,
 			);
-			path = Wildsnare;
+			path = Astrocat;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -45,7 +45,7 @@
 		89357AF12FA39EAD00EFEEC4 = {
 			isa = PBXGroup;
 			children = (
-				89357AFC2FA39EAD00EFEEC4 /* Wildsnare */,
+				89357AFC2FA39EAD00EFEEC4 /* Astrocat */,
 				89357AFB2FA39EAD00EFEEC4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,7 +53,7 @@
 		89357AFB2FA39EAD00EFEEC4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				89357AFA2FA39EAD00EFEEC4 /* Wildsnare.app */,
+				89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,9 +61,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		89357AF92FA39EAD00EFEEC4 /* Wildsnare */ = {
+		89357AF92FA39EAD00EFEEC4 /* Astrocat */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 89357B102FA39EAE00EFEEC4 /* Build configuration list for PBXNativeTarget "Wildsnare" */;
+			buildConfigurationList = 89357B102FA39EAE00EFEEC4 /* Build configuration list for PBXNativeTarget "Astrocat" */;
 			buildPhases = (
 				89357AF62FA39EAD00EFEEC4 /* Sources */,
 				89357AF72FA39EAD00EFEEC4 /* Frameworks */,
@@ -74,13 +74,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				89357AFC2FA39EAD00EFEEC4 /* Wildsnare */,
+				89357AFC2FA39EAD00EFEEC4 /* Astrocat */,
 			);
-			name = Wildsnare;
+			name = Astrocat;
 			packageProductDependencies = (
 			);
 			productName = Wildsnare;
-			productReference = 89357AFA2FA39EAD00EFEEC4 /* Wildsnare.app */;
+			productReference = 89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -98,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 89357AF52FA39EAD00EFEEC4 /* Build configuration list for PBXProject "Wildsnare" */;
+			buildConfigurationList = 89357AF52FA39EAD00EFEEC4 /* Build configuration list for PBXProject "Astrocat" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -112,7 +112,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				89357AF92FA39EAD00EFEEC4 /* Wildsnare */,
+				89357AF92FA39EAD00EFEEC4 /* Astrocat */,
 			);
 		};
 /* End PBXProject section */
@@ -326,7 +326,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		89357AF52FA39EAD00EFEEC4 /* Build configuration list for PBXProject "Wildsnare" */ = {
+		89357AF52FA39EAD00EFEEC4 /* Build configuration list for PBXProject "Astrocat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				89357B132FA39EAE00EFEEC4 /* Debug */,
@@ -335,7 +335,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		89357B102FA39EAE00EFEEC4 /* Build configuration list for PBXNativeTarget "Wildsnare" */ = {
+		89357B102FA39EAE00EFEEC4 /* Build configuration list for PBXNativeTarget "Astrocat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				89357B112FA39EAE00EFEEC4 /* Debug */,
