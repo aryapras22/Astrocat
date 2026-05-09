@@ -24,10 +24,6 @@ class IdleState: GKState {
     }
     
     override func update(deltaTime seconds: TimeInterval) {
-        guard let input = entity?.component(ofType: InputComponent.self) else { return }
-        
-        if input.wantsToJump {
-            stateMachine?.enter(JumpingState.self)
-        }
+
     }
 }

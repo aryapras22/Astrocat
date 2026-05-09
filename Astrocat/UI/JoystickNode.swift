@@ -30,7 +30,9 @@ class JoystickNode: SKNode {
         self.isUserInteractionEnabled = true
     }
     
-    required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Touch Logic
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -51,7 +53,6 @@ class JoystickNode: SKNode {
             activeTouch = nil
             knob.run(SKAction.move(to: .zero, duration: 0.1))
             onDirectionChange?(0.0)
-            
         }
     }
     

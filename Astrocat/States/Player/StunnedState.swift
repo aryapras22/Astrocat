@@ -22,4 +22,8 @@ class StunnedState: GKState {
     override func didEnter(from previousState: GKState?) {
         print("Stunned Animation")
     }
+    
+    override func update(deltaTime seconds: TimeInterval) {
+        
+    }
 }

@@ -12,23 +12,29 @@ class PlayerEntity: GKEntity {
     init(node: SKSpriteNode, camera: SKCameraNode) {
         super.init()
         
+        // Visuals
         node.texture?.filteringMode = .nearest
+        addComponent(GKSKNodeComponent(node: node))
         
-        let visualComponent = GKSKNodeComponent(node: node)
-        addComponent(visualComponent)
+        // Data
+        addComponent(InputComponent())
+        addComponent(MovementComponent())
         
-        let inputComponent = InputComponent()
-        addComponent(inputComponent)
+        // States
+        let states = [
+            IdleState(entity: self),
+            JumpingState(entity: self),
+            StunnedState(entity: self)
+        ]
+        addComponent(StateComponent(states: states))
         
-        let moveComponent = MoveComponent()
-        addComponent(moveComponent)
-        
+        // Camera
         let cameraComponent = CameraComponent(camera: camera)
         cameraComponent.target = node
         addComponent(cameraComponent)
         
-        let statusComponent = StatusComponent()
-        addComponent(statusComponent)
+        // Systems
+        addComponent(MovementSystem())
     }
     
     required init?(coder aDecoder: NSCoder) {

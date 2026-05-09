@@ -20,16 +20,9 @@ class JumpingState: GKState {
     }
     
     override func didEnter(from previousState: GKState?) {
-        guard let node = entity?.component(ofType: GKSKNodeComponent.self)?.node,
-              let input = entity?.component(ofType: InputComponent.self) else { return }
-        
-        node.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 100))
-        
-        input.wantsToJump = false
-        
-        print("Jumping Animation")
+        print("Start Jump Animation")
     }
-    
+
     override func update(deltaTime seconds: TimeInterval) {
         guard let node = entity?.component(ofType: GKSKNodeComponent.self)?.node else { return }
         

@@ -24,13 +24,12 @@ class TrapEntity: GKEntity {
         
         super.init()
         
+        // Visuals
         node.texture?.filteringMode = .nearest
+        addComponent(GKSKNodeComponent(node: node))
         
-        let visualComponent = GKSKNodeComponent(node: node)
-        addComponent(visualComponent)
-        
-        let trapComponent = TrapComponent(type: type)
-        addComponent(trapComponent)
+        // Trap Management
+        addComponent(TrapComponent(type: type))
         
         switch type {
         case .blackHole:

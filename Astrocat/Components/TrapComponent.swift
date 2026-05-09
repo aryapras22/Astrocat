@@ -15,7 +15,7 @@ class TrapComponent: GKComponent {
     
     // Black Hole & Force Field
     var pullForce: CGFloat = 1000.0
-    var radius: CGFloat = 250.0
+    var radius: CGFloat = 150.0
     
     // Purple Slime
     var speedMofidier: CGFloat = 0.5
@@ -25,7 +25,7 @@ class TrapComponent: GKComponent {
         super.init()
     }
     
-    required init(coder: NSCoder) {
+    required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

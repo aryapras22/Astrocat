@@ -15,9 +15,13 @@ class GameScene: SKScene {
     private var lastUpdateTime: TimeInterval = 0
     private let mainCamera = SKCameraNode()
     
+    // Player Systems
     var player: PlayerEntity?
-    var moveSystem = GKComponentSystem(componentClass: MoveComponent.self)
+    var movementSystem = GKComponentSystem(componentClass: MovementSystem.self)
     var cameraSystem = GKComponentSystem(componentClass: CameraComponent.self)
+    var stateSystem = GKComponentSystem(componentClass: StateComponent.self)
+    
+    // Trap Systems
     var blackHoleSystem = GKComponentSystem(componentClass: BlackHoleSystem.self)
     
     var playerInput: InputComponent? {
@@ -73,8 +77,9 @@ class GameScene: SKScene {
             let playerEntity = PlayerEntity(node: node, camera: mainCamera)
             self.player = playerEntity
             
-            moveSystem.addComponent(foundIn: playerEntity)
+            movementSystem.addComponent(foundIn: playerEntity)
             cameraSystem.addComponent(foundIn: playerEntity)
+            stateSystem.addComponent(foundIn: playerEntity)
         }
     }
     
@@ -92,9 +97,10 @@ class GameScene: SKScene {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
         
+        movementSystem.update(deltaTime: dt)
+        stateSystem.update(deltaTime: dt)
         cameraSystem.update(deltaTime: dt)
         blackHoleSystem.update(deltaTime: dt)
-        moveSystem.update(deltaTime: dt)
         
         lastUpdateTime = currentTime
     }
