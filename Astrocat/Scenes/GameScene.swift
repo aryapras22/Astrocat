@@ -19,7 +19,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var player: PlayerEntity?
     var movementSystem = GKComponentSystem(componentClass: MovementSystem.self)
     var cameraSystem = GKComponentSystem(componentClass: CameraSystem.self)
-    var stateSystem = GKComponentSystem(componentClass: StateComponent.self)
+    var stateSystem = GKComponentSystem(componentClass: StateSystem.self)
     var statusSystem = GKComponentSystem(componentClass: StatusSystem.self)
     
     // Trap Systems

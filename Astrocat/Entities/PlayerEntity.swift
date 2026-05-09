@@ -38,6 +38,7 @@ class PlayerEntity: GKEntity {
             StunnedState(entity: self),
         ]
         addComponent(StateComponent(states: states))
+        addComponent(StateSystem())
         
         // Physics
         if let body = node.physicsBody {
