@@ -18,7 +18,7 @@ class GameScene: SKScene {
     var player: PlayerEntity?
     var moveSystem = GKComponentSystem(componentClass: MoveComponent.self)
     var cameraSystem = GKComponentSystem(componentClass: CameraComponent.self)
-    var trapSystem = GKComponentSystem(componentClass: TrapComponent.self)
+    var blackHoleSystem = GKComponentSystem(componentClass: BlackHoleSystem.self)
     
     var playerInput: InputComponent? {
         return player?.component(ofType: InputComponent.self)
@@ -29,26 +29,6 @@ class GameScene: SKScene {
     private func setupCamera() {
         addChild(mainCamera)
         self.camera = mainCamera
-    }
-    
-    private func setupPlayer() {
-        if let node = childNode(withName: "//Player") as? SKSpriteNode {
-            let playerEntity = PlayerEntity(node: node, camera: mainCamera)
-            self.player = playerEntity
-            
-            moveSystem.addComponent(foundIn: playerEntity)
-            cameraSystem.addComponent(foundIn: playerEntity)
-        }
-    }
-    
-    private func setupTraps() {
-        enumerateChildNodes(withName: "//BlackHole") { node, _ in
-            if let sprite = node as? SKSpriteNode {
-                let trapEntity = TrapEntity(node: sprite, type: .blackHole)
-                self.entities.append(trapEntity)
-                self.trapSystem.addComponent(foundIn: trapEntity)
-            }
-        }
     }
     
     private func setupUI() {
@@ -76,12 +56,34 @@ class GameScene: SKScene {
         mainCamera.addChild(jumpButton)
     }
     
+    private func setupTraps() {
+        enumerateChildNodes(withName: "//BlackHole") { node, _ in
+            if let sprite = node as? SKSpriteNode {
+                let trapEntity = TrapEntity(node: sprite, type: .blackHole)
+                
+                self.entities.append(trapEntity)
+                
+                self.blackHoleSystem.addComponent(foundIn: trapEntity)
+            }
+        }
+    }
+    
+    private func setupPlayer() {
+        if let node = childNode(withName: "//Player") as? SKSpriteNode {
+            let playerEntity = PlayerEntity(node: node, camera: mainCamera)
+            self.player = playerEntity
+            
+            moveSystem.addComponent(foundIn: playerEntity)
+            cameraSystem.addComponent(foundIn: playerEntity)
+        }
+    }
+    
     override func didMove(to view: SKView) {
         super.didMove(to: view)
         setupCamera()
-        setupPlayer()
-        setupTraps()
         setupUI()
+        setupTraps()
+        setupPlayer()
     }
     
     // MARK: - Update
@@ -90,9 +92,9 @@ class GameScene: SKScene {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
         
-        moveSystem.update(deltaTime: dt)
-        trapSystem.update(deltaTime: dt)
         cameraSystem.update(deltaTime: dt)
+        blackHoleSystem.update(deltaTime: dt)
+        moveSystem.update(deltaTime: dt)
         
         lastUpdateTime = currentTime
     }

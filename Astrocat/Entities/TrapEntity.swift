@@ -31,6 +31,23 @@ class TrapEntity: GKEntity {
         
         let trapComponent = TrapComponent(type: type)
         addComponent(trapComponent)
+        
+        switch type {
+        case .blackHole:
+            addComponent(BlackHoleSystem())
+        case .forceField:
+            print("Force Field System is not yet implemented")
+            //            addComponent(ForceFieldSystem())
+        case .purpleSlime:
+            print("Purple Slime System is not yet implemented")
+            //            addComponent(PurpleSlimeSystem())
+        case .electricCoil:
+            print("Electric Coil System is not yet implemented")
+            //            addComponent(ElectricCoilSystem())
+        case .cometDust:
+            print("Comet Dust System is not yet implemented")
+            //            addComponent(CometDustSystem())
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {
