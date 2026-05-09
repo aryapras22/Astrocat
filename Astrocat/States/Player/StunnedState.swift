@@ -9,8 +9,8 @@ import GameplayKit
 
 class StunnedState: GKState {
     weak var entity: GKEntity?
-    var duration: TimeInterval = 0
-    var elapsed: TimeInterval = 0
+    var duration: TimeInterval = 0.0
+    var elapsed: TimeInterval = 0.0
     
     init(entity: GKEntity) {
         self.entity = entity

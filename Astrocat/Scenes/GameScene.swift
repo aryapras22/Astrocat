@@ -20,10 +20,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var movementSystem = GKComponentSystem(componentClass: MovementSystem.self)
     var cameraSystem = GKComponentSystem(componentClass: CameraSystem.self)
     var stateSystem = GKComponentSystem(componentClass: StateComponent.self)
+    var statusSystem = GKComponentSystem(componentClass: StatusSystem.self)
     
     // Trap Systems
     var blackHoleSystem = GKComponentSystem(componentClass: BlackHoleSystem.self)
     var electricCoilSystem = GKComponentSystem(componentClass: ElectricCoilSystem.self)
+    var purpleSlimeSystem = GKComponentSystem(componentClass: PurpleSlimeSystem.self)
     
     var playerInput: InputComponent? {
         return player?.component(ofType: InputComponent.self)
@@ -80,6 +82,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.electricCoilSystem.addComponent(foundIn: trapEntity)
             }
         }
+        enumerateChildNodes(withName: "//PurpleSlime") { node, _ in
+            if let sprite = node as? SKSpriteNode {
+                let trapEntity = TrapEntity(node: sprite, type: .purpleSlime)
+                
+                self.entities.append(trapEntity)
+                
+                self.purpleSlimeSystem.addComponent(foundIn: trapEntity)
+            }
+        }
     }
     
     private func setupPlayer() {
@@ -90,6 +101,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             movementSystem.addComponent(foundIn: playerEntity)
             cameraSystem.addComponent(foundIn: playerEntity)
             stateSystem.addComponent(foundIn: playerEntity)
+            statusSystem.addComponent(foundIn: playerEntity)
         }
     }
     
@@ -108,10 +120,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
         
-        stateSystem.update(deltaTime: dt)
         blackHoleSystem.update(deltaTime: dt)
         movementSystem.update(deltaTime: dt)
         cameraSystem.update(deltaTime: dt)
+        stateSystem.update(deltaTime: dt)
+        statusSystem.update(deltaTime: dt)
         
         lastUpdateTime = currentTime
     }

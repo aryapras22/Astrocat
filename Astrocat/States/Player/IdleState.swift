@@ -20,7 +20,7 @@ class IdleState: GKState {
     }
     
     override func didEnter(from previousState: GKState?) {
-        print("Idle Animation")
+        print("Start Idle Animation")
     }
     
     override func update(deltaTime seconds: TimeInterval) {

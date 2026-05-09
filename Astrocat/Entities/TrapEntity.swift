@@ -28,9 +28,10 @@ class TrapEntity: GKEntity {
         node.texture?.filteringMode = .nearest
         addComponent(GKSKNodeComponent(node: node))
         
-        // Trap Management
+        // Component
         addComponent(TrapComponent(type: type))
         
+        // Systems
         switch type {
         case .blackHole:
             addComponent(BlackHoleSystem())
