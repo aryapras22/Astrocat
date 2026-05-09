@@ -35,17 +35,18 @@ class TrapEntity: GKEntity {
         case .blackHole:
             addComponent(BlackHoleSystem())
         case .forceField:
-            print("Force Field System is not yet implemented")
-            //            addComponent(ForceFieldSystem())
+            addComponent(ForceFieldSystem())
         case .purpleSlime:
-            print("Purple Slime System is not yet implemented")
-            //            addComponent(PurpleSlimeSystem())
+            addComponent(PurpleSlimeSystem())
         case .electricCoil:
-            print("Electric Coil System is not yet implemented")
-            //            addComponent(ElectricCoilSystem())
+            addComponent(ElectricCoilSystem())
         case .cometDust:
-            print("Comet Dust System is not yet implemented")
-            //            addComponent(CometDustSystem())
+            addComponent(CometDustSystem())
+        }
+        
+        // Physics
+        if let body = node.physicsBody {
+            body.categoryBitMask = PhysicsCategory.trap
         }
     }
     

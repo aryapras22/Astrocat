@@ -85,6 +85,7 @@ class GameScene: SKScene {
     
     override func didMove(to view: SKView) {
         super.didMove(to: view)
+        self.physicsWorld.contactDelegate = self
         setupCamera()
         setupUI()
         setupTraps()

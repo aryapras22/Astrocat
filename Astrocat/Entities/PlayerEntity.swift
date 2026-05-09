@@ -35,6 +35,13 @@ class PlayerEntity: GKEntity {
         
         // Systems
         addComponent(MovementSystem())
+        
+        // Physics
+        if let body = node.physicsBody {
+            body.categoryBitMask = PhysicsCategory.player
+            body.contactTestBitMask = PhysicsCategory.trap
+            body.collisionBitMask = PhysicsCategory.trap
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {

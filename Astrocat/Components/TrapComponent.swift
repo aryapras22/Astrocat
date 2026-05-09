@@ -14,8 +14,9 @@ class TrapComponent: GKComponent {
     var effectDuration: TimeInterval = 2.0
     
     // Black Hole & Force Field
-    var pullForce: CGFloat = 1000.0
     var radius: CGFloat = 150.0
+    var pullForce: CGFloat = 1000.0
+    var impulseForce: CGFloat = 200.0
     
     // Purple Slime
     var speedMofidier: CGFloat = 0.5
