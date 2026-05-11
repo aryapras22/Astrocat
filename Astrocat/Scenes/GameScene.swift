@@ -77,6 +77,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .electricCoil)
                 
+                let atlas = SKTextureAtlas(named: "ElectricCoil")
+                var frames: [SKTexture] = []
+                
+                for i in 1...atlas.textureNames.count {
+                    let textureName = "frame\(i)"
+                    frames.append(atlas.textureNamed(textureName))
+                }
+                
+                sprite.run(SKAction.repeatForever(SKAction.animate(with: frames, timePerFrame: 0.1)))
+                
                 self.entities.append(trapEntity)
                 
                 self.electricCoilSystem.addComponent(foundIn: trapEntity)
