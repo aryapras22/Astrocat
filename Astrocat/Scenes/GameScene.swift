@@ -15,6 +15,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var lastUpdateTime: TimeInterval = 0
     private let mainCamera = SKCameraNode()
     
+    private let levelConfig = LevelConfig.defaultConfig
+    private var generatedLevel: GeneratedLevel?
+    private var previousPlayerBottomY: CGFloat?
+    
+    // Debug
+    private let showDebugGrid = true
+    private let debugPositionLabel = SKLabelNode(fontNamed: "Menlo")
+    
     // Player Systems
     var player: PlayerEntity?
     var movementSystem = GKComponentSystem(componentClass: MovementSystem.self)
@@ -44,6 +52,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         overlay.setScale(8.5)
         overlay.texture?.filteringMode = .nearest
         mainCamera.addChild(overlay)
+    }
+    
+    private func setupFloor() {
+        let node = SKSpriteNode(color: .red, size: levelConfig.floorSize)
+        node.position = CGPoint(
+            x: levelConfig.mapWidth / 2,
+            y: levelConfig.startY
+        )
+        node.name = "Floor"
+        node.zPosition = 0
+        
+        node.physicsBody = SKPhysicsBody(rectangleOf: node.size)
+        node.physicsBody?.isDynamic = false
+        node.physicsBody?.categoryBitMask = PhysicsCategory.floor
+        node.physicsBody?.contactTestBitMask = PhysicsCategory.none
+        node.physicsBody?.collisionBitMask = PhysicsCategory.player
+        
+        addChild(node)
     }
     
     private func setupUI() {
@@ -138,8 +164,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func setupPlayer() {
         if let node = childNode(withName: "//Player") as? SKSpriteNode {
+            if let startPosition = generatedLevel?.startPositions.first {
+                node.position = startPosition
+            }
+            
+            mainCamera.position = CGPoint(
+                x: node.position.x,
+                y: node.position.y + 180
+            )
+            
             let playerEntity = PlayerEntity(node: node, camera: mainCamera)
             self.player = playerEntity
+            self.entities.append(playerEntity)
             
             movementSystem.addComponent(foundIn: playerEntity)
             cameraSystem.addComponent(foundIn: playerEntity)
@@ -147,20 +183,199 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    private func setupLevel() {
+        let seed = UInt64(Date().timeIntervalSince1970)
+
+        let generator = LevelGenerator(
+            config: levelConfig,
+            seed: seed
+        )
+        
+        let level = generator.generate()
+        generatedLevel = level
+        
+        for platform in level.platforms {
+            spawnPlatformEntity(platform)
+        }
+    }
+    
+    private func setupDebugPositionLabel() {
+        debugPositionLabel.fontSize = 14
+        debugPositionLabel.fontColor = .white
+        debugPositionLabel.horizontalAlignmentMode = .right
+        debugPositionLabel.verticalAlignmentMode = .bottom
+        debugPositionLabel.zPosition = 999
+        
+        debugPositionLabel.position = CGPoint(
+            x: frame.width / 2 - 120,
+            y: -frame.height / 2 + 20
+        )
+        
+        mainCamera.addChild(debugPositionLabel)
+    }
+    
+    private func spawnPlatformEntity(_ data: GeneratedPlatform) {
+        let node = SKSpriteNode(imageNamed: data.textureName)
+        node.position = data.position
+        node.size = levelConfig.platformSize
+        node.name = "Platform"
+        node.zPosition = 1
+        node.texture?.filteringMode = .nearest
+        
+        addChild(node)
+        
+        let platformEntity = PlatformEntity(node: node)
+        entities.append(platformEntity)
+    }
+    
+    private func setupDebugGrid() {
+        guard showDebugGrid else { return }
+
+        let gridNode = SKNode()
+        gridNode.name = "DebugGrid"
+        gridNode.zPosition = -5
+
+        let cellWidth = levelConfig.mapWidth / CGFloat(levelConfig.gridColumns)
+        let rowHeight = levelConfig.finishLineY / CGFloat(levelConfig.gridRows + 2)
+
+        // Vertical column lines
+        for column in 0...levelConfig.gridColumns {
+            let x = CGFloat(column) * cellWidth
+
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: x, y: levelConfig.startY))
+            path.addLine(to: CGPoint(x: x, y: levelConfig.finishLineY))
+
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .cyan.withAlphaComponent(0.35)
+            line.lineWidth = 1
+            gridNode.addChild(line)
+        }
+
+        // Horizontal row lines
+        for row in 0...levelConfig.gridRows {
+            let y = levelConfig.startY + CGFloat(row) * rowHeight
+
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: 0, y: y))
+            path.addLine(to: CGPoint(x: levelConfig.mapWidth, y: y))
+
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .yellow.withAlphaComponent(0.25)
+            line.lineWidth = 1
+            gridNode.addChild(line)
+        }
+
+        // Mark column centers
+        for column in 0..<levelConfig.gridColumns {
+            let x = CGFloat(column) * cellWidth + cellWidth / 2
+
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: x, y: levelConfig.startY))
+            path.addLine(to: CGPoint(x: x, y: levelConfig.finishLineY))
+
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .white.withAlphaComponent(0.15)
+            line.lineWidth = 1
+            gridNode.addChild(line)
+        }
+
+        addChild(gridNode)
+    }
+    
     override func didMove(to view: SKView) {
         super.didMove(to: view)
         self.physicsWorld.contactDelegate = self
         setupCamera()
-        setupUI()
+        setupDebugPositionLabel()
+        setupFloor()
+        setupDebugGrid()
+        setupLevel()
         setupTraps()
         setupPlayer()
+        setupUI()
     }
     
     // MARK: - Update
     
+    private func updateOneWayPlatformCollision() {
+        guard let playerNode = player?.component(ofType: GKSKNodeComponent.self)?.node as? SKSpriteNode,
+              let body = playerNode.physicsBody
+        else { return }
+
+        var collisionMask: UInt32 = PhysicsCategory.trap | PhysicsCategory.floor
+
+        let playerBottomY = playerNode.position.y - playerNode.size.height / 2
+        let lastBottomY = previousPlayerBottomY ?? playerBottomY
+        previousPlayerBottomY = playerBottomY
+
+        // Moving upward: allow pass through platforms from below
+        if body.velocity.dy > 0 {
+            body.collisionBitMask = collisionMask
+            return
+        }
+
+        let playerHalfWidth = playerNode.size.width / 2
+        let tolerance: CGFloat = 8
+
+        var shouldCollideWithPlatform = false
+
+        enumerateChildNodes(withName: "//Platform") { node, stop in
+            guard let platform = node as? SKSpriteNode else { return }
+
+            let platformTopY = platform.position.y + platform.size.height / 2 - 4
+
+            let platformColliderWidth = platform.size.width * 0.75
+            let platformLeft = platform.position.x - platformColliderWidth / 2
+            let platformRight = platform.position.x + platformColliderWidth / 2
+
+            let playerLeft = playerNode.position.x - playerHalfWidth
+            let playerRight = playerNode.position.x + playerHalfWidth
+
+            let isHorizontallyOverPlatform =
+                playerRight > platformLeft &&
+                playerLeft < platformRight
+
+            // Turn collision on if the player was above the platform last frame and is now falling toward/past the platform top.
+            let crossedPlatformFromAbove =
+                lastBottomY >= platformTopY - tolerance &&
+                playerBottomY <= platformTopY + tolerance
+
+            let isCurrentlyAbovePlatform =
+                playerBottomY >= platformTopY - tolerance
+
+            if isHorizontallyOverPlatform &&
+                (crossedPlatformFromAbove || isCurrentlyAbovePlatform) {
+                shouldCollideWithPlatform = true
+                stop.pointee = true
+            }
+        }
+
+        if shouldCollideWithPlatform {
+            collisionMask |= PhysicsCategory.platform
+        }
+
+        body.collisionBitMask = collisionMask
+    }
+    
+    private func updateDebugPositionLabel() {
+        guard let playerNode = player?.component(ofType: GKSKNodeComponent.self)?.node as? SKSpriteNode else {
+            debugPositionLabel.text = "Player: nil"
+            return
+        }
+        
+        let x = Int(playerNode.position.x)
+        let y = Int(playerNode.position.y)
+        
+        debugPositionLabel.text = "Player x: \(x)  y: \(y)"
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
+        
+        updateOneWayPlatformCollision()
+        updateDebugPositionLabel()
         
         blackHoleSystem.update(deltaTime: dt)
         movementSystem.update(deltaTime: dt)

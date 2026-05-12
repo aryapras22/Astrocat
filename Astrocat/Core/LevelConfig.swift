@@ -1,0 +1,30 @@
+//
+//  LevelConfig.swift
+//  Astrocat
+//
+//  Created by Andrew Wallace on 11/05/26.
+//
+
+import CoreGraphics
+
+struct LevelConfig {
+    let mapWidth: CGFloat
+    let finishLineY: CGFloat
+    let startY: CGFloat
+    let gridColumns: Int
+    let gridRows: Int
+    let platformSize: CGSize
+    let floorSize: CGSize
+    let isBranchEnabled: Bool
+    
+    static let defaultConfig = LevelConfig(
+        mapWidth: 2500,
+        finishLineY: 5000,
+        startY: 50,
+        gridColumns: 10,
+        gridRows: 40,
+        platformSize: CGSize(width: 120, height: 40),
+        floorSize: CGSize(width: 2500, height: 30),
+        isBranchEnabled: false
+    )
+}
