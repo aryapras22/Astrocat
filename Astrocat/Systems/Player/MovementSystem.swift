@@ -22,9 +22,9 @@ class MovementSystem: GKComponent {
         var currentImpulse = moveData.impulse
         
         // Handle Slowed Down Status
-        if status.stateMachine.currentState is SlowedDownState {
-            currentSpeed *= 0.5
-            currentImpulse *= 0.5
+        if let slowedState = status.stateMachine.currentState as? SlowedDownState {
+            currentSpeed *= slowedState.modifier
+            currentImpulse *= slowedState.modifier
         }
         
         // Handle Stunned State

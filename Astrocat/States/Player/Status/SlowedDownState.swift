@@ -11,8 +11,7 @@ class SlowedDownState: GKState {
     unowned let statusComp: StatusComponent
     var elapsed: TimeInterval = 0
     var duration: TimeInterval = 0
-    var modifier: CGFloat = 0
-    var isActive: Bool = false
+    var modifier: CGFloat = 1.0
     
     init(component: StatusComponent) {
         self.statusComp = component
@@ -28,7 +27,6 @@ class SlowedDownState: GKState {
         elapsed += seconds
         
         if elapsed >= duration {
-            isActive = false
             self.stateMachine?.enter(NormalState.self)
         }
     }
