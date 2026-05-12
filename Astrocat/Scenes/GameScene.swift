@@ -36,6 +36,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private func setupCamera() {
         addChild(mainCamera)
         self.camera = mainCamera
+        
+        let overlay = SKSpriteNode(color: .black, size: self.size)
+        overlay.name = "DustOverlay"
+        overlay.alpha = 0
+        overlay.zPosition = 100
+        mainCamera.addChild(overlay)
     }
     
     private func setupUI() {
@@ -68,6 +74,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .blackHole)
                 
+                let atlas = SKTextureAtlas(named: "BlackHole")
+                var frames: [SKTexture] = []
+                
+                for i in 1...atlas.textureNames.count {
+                    let textureName = "BH-Frame-\(i)"
+                    frames.append(atlas.textureNamed(textureName))
+                }
+                
+                sprite.run(SKAction.repeatForever(SKAction.animate(with: frames, timePerFrame: 0.1)))
+                
                 self.entities.append(trapEntity)
                 
                 self.blackHoleSystem.addComponent(foundIn: trapEntity)
@@ -81,33 +97,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 var frames: [SKTexture] = []
                 
                 for i in 1...atlas.textureNames.count {
-                    let textureName = "frame\(i)"
+                    let textureName = "EC-Frame-\(i)"
                     frames.append(atlas.textureNamed(textureName))
                 }
                 
                 sprite.run(SKAction.repeatForever(SKAction.animate(with: frames, timePerFrame: 0.1)))
                 
                 self.entities.append(trapEntity)
-                
-                self.electricCoilSystem.addComponent(foundIn: trapEntity)
             }
         }
         enumerateChildNodes(withName: "//PurpleSlime") { node, _ in
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .purpleSlime)
-                
                 self.entities.append(trapEntity)
-                
-                self.purpleSlimeSystem.addComponent(foundIn: trapEntity)
             }
         }
         enumerateChildNodes(withName: "//ForceField") { node, _ in
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .forceField)
-                
                 self.entities.append(trapEntity)
-                
-                self.forceFieldSystem.addComponent(foundIn: trapEntity)
+            }
+        }
+        enumerateChildNodes(withName: "//CometDust") { node, _ in
+            if let sprite = node as? SKSpriteNode {
+                let trapEntity = TrapEntity(node: sprite, type: .cometDust)
+                self.entities.append(trapEntity)
             }
         }
     }

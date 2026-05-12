@@ -7,6 +7,16 @@
 
 import GameplayKit
 
-class CometDustSystem: GKComponent {
-    
+class CometDustSystem: GKComponent, TrapProtocol {
+    func didContact(player: PlayerEntity) {
+        guard let trapData = entity?.component(ofType: TrapComponent.self),
+              trapData.type == .cometDust else { return }
+        
+        if let status = player.component(ofType: StatusComponent.self) {
+            if let obscured = status.stateMachine.state(forClass: ObscuredState.self) {
+                obscured.duration = trapData.effectDuration
+            }
+            status.stateMachine.enter(ObscuredState.self)
+        }
+    }
 }

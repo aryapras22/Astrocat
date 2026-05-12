@@ -16,7 +16,8 @@ class StatusComponent: GKComponent {
         let states = [
             NormalState(component: self),
             SlowedDownState(component: self),
-            StunnedState(component: self)
+            StunnedState(component: self),
+            ObscuredState(component: self)
         ]
         
         self.stateMachine = GKStateMachine(states: states)
