@@ -28,7 +28,7 @@ struct LevelConfig {
         gridRows: 40,
         platformSize: CGSize(width: 120, height: 40),
         floorSize: CGSize(width: 2500, height: 30),
-        decorationProbability: 45,
-        maxPlatformsPerRow: 2
+        decorationProbability: 70,
+        maxPlatformsPerRow: 3
     )
 }

@@ -16,7 +16,6 @@ struct GeneratedPlatform {
 
 enum PlatformType {
     case backbone
-    case bridge
     case start
     case decoration
 }
@@ -74,14 +73,13 @@ class LevelGenerator {
         var allCells: [PlatformCell] = []
         
         // Starting area
-        let (starts, _, backboneEntry) = generateStartingArea(allCells: &allCells)
-        let startCount = 2
-        let bridgeCount = allCells.count
-        
-        placeCell(backboneEntry, into: &allCells)
+        let startCol = nextRandomInt(safeMinColumn...safeMaxColumn)
+        let startCell = makeCell(column: startCol, row: 1, offsetRange: 15)
+        placeCell(startCell, into: &allCells)
+        let startCount = allCells.count
         
         // Backbone (from entry row + 1 to top)
-        _ = generateBackbone(from: backboneEntry, allCells: &allCells)
+        _ = generateBackbone(from: startCell, allCells: &allCells)
         let backboneCount = allCells.count
         
         // Decorations
@@ -96,8 +94,6 @@ class LevelGenerator {
             let type: PlatformType
             if index < startCount {
                 type = .start
-            } else if index < bridgeCount {
-                type = .bridge
             } else if index < backboneCount {
                 type = .backbone
             } else {
@@ -113,201 +109,17 @@ class LevelGenerator {
         let playerHalfHeight: CGFloat = 32 // 64x64
         let floorTopY = config.startY + config.floorSize.height / 2
         
-        let centerStart = CGPoint(
-            x: config.mapWidth / 2,
-            y: floorTopY + playerHalfHeight + 2
-        )
-        let perPlatformStarts = starts.map { cell -> CGPoint in
+        let startPositions = [
             CGPoint(
-                x: worldPosition(for: cell).x,
+                x: config.mapWidth / 2,
                 y: floorTopY + playerHalfHeight + 2
             )
-        }
-        let startPositions = [centerStart] + perPlatformStarts
+        ]
         
         return GeneratedLevel(
             platforms: platforms,
             startPositions: startPositions
         )
-    }
-    
-    // MARK: - Starting Area
-    /*
-     Starting Patterns:
-     - Pattern 0: V-Shape
-     - Pattern 1: Left Side
-     - Pattern 2: Right Side
-     - Pattern 3: Uneven Start (Asymmetric)
-     - Pattern 4: Center Start
-     */
-    private enum StartPattern: Int, CaseIterable {
-        case vShape = 0
-        case leftLeaning
-        case rightLeaning
-        case asymmetric
-        case centerCluster
-    }
-    
-    private func generateStartingArea(allCells: inout [PlatformCell]) -> (starts: [PlatformCell], bridges: [PlatformCell], entry: PlatformCell) {
-        let pattern = StartPattern(rawValue: nextRandomInt(0...4))!
-//        let pattern = StartPattern.asymmetric
-        
-        let (leftCol, rightCol, entryCol) = startingColumn(for: pattern)
-        let leftStart = makeCell(column: leftCol, row: 1, offsetRange: 15)
-        let rightStart = makeCell(column: rightCol, row: 1, offsetRange: 15)
-        
-        placeCell(leftStart, into: &allCells)
-        placeCell(rightStart, into: &allCells)
-        
-        var bridges: [PlatformCell] = []
-        var leftMaxRow = 2
-        var rightMaxRow = 2
-        
-        var leftBridges = buildBridge(from: leftStart, towardColumn: entryCol, startRow: 2, maxRowUsed: &leftMaxRow, allCells: &allCells)
-        var rightBridges = buildBridge(from: rightStart, towardColumn: entryCol, startRow: 2, maxRowUsed: &rightMaxRow, allCells: &allCells)
-        
-        let maxBridgeRow = max(leftMaxRow, rightMaxRow)
-        let entryRow = bridges.isEmpty && leftBridges.isEmpty && rightBridges.isEmpty ? 2 : maxBridgeRow
-        
-        leftBridges = extendBridge(leftBridges, from: leftStart, toRow: entryRow - 1, targetCol: entryCol, allCells: &allCells)
-        rightBridges = extendBridge(rightBridges, from: rightStart, toRow: entryRow - 1, targetCol: entryCol, allCells: &allCells)
-        
-        bridges.append(contentsOf: leftBridges)
-        bridges.append(contentsOf: rightBridges)
-        
-        var entryCell = makeCell(column: entryCol, row: entryRow, offsetRange: 15)
-        
-        let lastLeft = leftBridges.last ?? leftStart
-        let lastRight = rightBridges.last ?? rightStart
-        
-        if !isReachable(from: lastLeft, to: entryCell) && !isReachable(from: lastRight, to: entryCell) {
-            entryCell = PlatformCell(column: entryCol, row: entryRow, offsetX: 0, offsetY: 0)
-        }
-        
-
-        return (starts: [leftStart, rightStart], bridges: bridges, entry: entryCell)
-    }
-    
-    private func startingColumn(for pattern: StartPattern) -> (left: Int, right: Int, entry: Int) {
-        let mid = (safeMinColumn + safeMaxColumn) / 2
-
-        switch pattern {
-        case .vShape:
-            // Wide spread, entry at center
-            let left = clamp(safeMinColumn + nextRandomInt(0...1), min: safeMinColumn, max: safeMaxColumn)
-            let right = clamp(safeMaxColumn - nextRandomInt(0...1), min: mid + 1, max: safeMaxColumn)
-            let entry = clamp(mid + nextRandomInt(-1...1), min: safeMinColumn, max: safeMaxColumn)
-            return (left, right, entry)
-
-        case .leftLeaning:
-            // Start and entry are mostly on the left side
-            let left = clamp(safeMinColumn + nextRandomInt(0...1), min: safeMinColumn, max: mid - 2)
-            let right = clamp(mid + nextRandomInt(-1...0), min: left + 2, max: safeMaxColumn)
-            let entry = clamp(left + nextRandomInt(1...2), min: safeMinColumn, max: safeMaxColumn)
-            return (left, right, entry)
-
-        case .rightLeaning:
-            // Start and entry are mostly on the right side
-            let right = clamp(safeMaxColumn - nextRandomInt(0...1), min: mid + 2, max: safeMaxColumn)
-            let left = clamp(mid + nextRandomInt(0...1), min: mid, max: right - 2)
-            let entry = clamp(right - nextRandomInt(1...2), min: safeMinColumn, max: safeMaxColumn)
-            return (left, right, entry)
-
-        case .asymmetric:
-            // Wide spread like V, but entry biased toward one side randomly
-            let left = clamp(safeMinColumn + nextRandomInt(0...1), min: safeMinColumn, max: mid - 1)
-            let right = clamp(safeMaxColumn - nextRandomInt(0...1), min: mid + 1, max: safeMaxColumn)
-            let biasLeft = nextRandom(in: 0...1) < 0.5
-            let entry = biasLeft
-                ? clamp(left + nextRandomInt(1...2), min: safeMinColumn, max: safeMaxColumn)
-                : clamp(right - nextRandomInt(1...2), min: safeMinColumn, max: safeMaxColumn)
-            return (left, right, entry)
-
-        case .centerCluster:
-            // Both starts middle, minimal bridging
-            let left = clamp(mid - nextRandomInt(1...2), min: safeMinColumn, max: mid - 1)
-            let right = clamp(mid + nextRandomInt(1...2), min: mid + 1, max: safeMaxColumn)
-            let entry = clamp(mid + nextRandomInt(-1...1), min: safeMinColumn, max: safeMaxColumn)
-            return (left, right, entry)
-        }
-    }
-    
-    // Create bridge path from start platform to entry column
-    private func buildBridge(
-        from start: PlatformCell,
-        towardColumn targetCol: Int,
-        startRow: Int,
-        maxRowUsed: inout Int,
-        allCells: inout [PlatformCell]
-    ) -> [PlatformCell] {
-        var bridges: [PlatformCell] = []
-        var currentCol = start.column
-        var previousCell = start
-        var row = startRow
-        
-        while currentCol != targetCol {
-            if currentCol < targetCol {
-                currentCol += 1
-            } else {
-                currentCol -= 1
-            }
-            
-            let cell = makeCell(column: currentCol, row: row, offsetRange: 15)
-            
-            if isReachable(from: previousCell, to: cell) {
-                bridges.append(cell)
-                placeCell(cell, into: &allCells)
-                previousCell = cell
-            } else {
-                let fallback = PlatformCell(column: currentCol, row: row, offsetX: 0, offsetY: 0)
-                bridges.append(fallback)
-                placeCell(fallback, into: &allCells)
-                previousCell = fallback
-            }
-            
-            row += 1
-        }
-        
-        maxRowUsed = row
-        return bridges
-    }
-    
-    // Add extra platforms so left and right reach similar height
-    private func extendBridge(
-        _ bridge: [PlatformCell],
-        from start: PlatformCell,
-        toRow targetRow: Int,
-        targetCol: Int,
-        allCells: inout [PlatformCell]
-    ) -> [PlatformCell] {
-        var result = bridge
-        var previous = bridge.last ?? start
-        
-        while previous.row < targetRow {
-            let nextRow = previous.row + 1
-            
-            var col = previous.column
-            if col < targetCol {
-                col += 1
-            } else if col > targetCol {
-                col -= 1
-            }
-            
-            let cell = makeCell(column: col, row: nextRow, offsetRange: 15)
-            
-            if isReachable(from: previous, to: cell) {
-                result.append(cell)
-                placeCell(cell, into: &allCells)
-                previous = cell
-            } else {
-                let fallback = PlatformCell(column: col, row: nextRow, offsetX: 0, offsetY: 0)
-                result.append(fallback)
-                placeCell(fallback, into: &allCells)
-                previous = fallback
-            }
-        }
-        
-        return result
     }
     
     // MARK: - Backbone Generation
