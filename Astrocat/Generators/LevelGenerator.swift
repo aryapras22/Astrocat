@@ -48,9 +48,9 @@ class LevelGenerator {
     private var occupiedCells = Set<CellKey>()
     private var platformsByRow: [Int: [PlatformCell]] = [:]
     
-    private let safeMinColumn: Int = 1
+    private let safeMinColumn: Int = 0
     private var safeMaxColumn: Int {
-        config.gridColumns - 2
+        config.gridColumns - 1
     }
     
     private var gridCellWidth: CGFloat {
@@ -83,10 +83,7 @@ class LevelGenerator {
         let backboneCount = allCells.count
         
         // Decorations
-        let decorations = generateDecorations()
-        for cell in decorations {
-            placeCell(cell, into: &allCells)
-        }
+        _ = generateDecorations(allCells: &allCells)
         
 //        let platforms = allCells.map { createPlatform(from: $0) }
         
@@ -302,7 +299,7 @@ class LevelGenerator {
     
     // MARK: - Decoration
     
-    private func generateDecorations() -> [PlatformCell] {
+    private func generateDecorations(allCells: inout [PlatformCell]) -> [PlatformCell] {
         var decorations: [PlatformCell] = []
         let maxRow = config.gridRows - 1
         
@@ -310,6 +307,13 @@ class LevelGenerator {
         var columnsOnRow: [Int: Set<Int>] = [:]
         for (row, cells) in platformsByRow {
             columnsOnRow[row] = Set(cells.map { $0.column })
+        }
+        
+        var backboneColByRow: [Int: Int] = [:]
+        for (row, cells) in platformsByRow {
+            if let first = cells.first {
+                backboneColByRow[row] = first.column
+            }
         }
         
         for row in 1...maxRow {
@@ -345,6 +349,44 @@ class LevelGenerator {
                 guard reachable else { continue }
                 
                 decorations.append(cell)
+                placeCell(cell, into: &allCells)
+                
+                // Create chain (distraction)
+                if nextRandom(in: 0...100) < config.chainProbability {
+                    let chainLength = nextRandomInt(1...3)
+                    var chainPrevious = cell
+                    
+                    for _ in 0..<chainLength {
+                        let chainRow = chainPrevious.row + 1
+                        guard chainRow < maxRow else { break }
+                        guard platformCountOnRow(chainRow) < config.maxPlatformsPerRow else { break }
+                        
+                        // Move away from backbone
+                        let backboneCol = backboneColByRow[chainRow]
+                        let awayDirection: Int
+                        if let backbone = backboneCol {
+                            awayDirection = chainPrevious.column > backbone ? 1 : -1
+                        } else {
+                            awayDirection = nextRandom(in: 0...1) < 0.5 ? -1 : 1
+                        }
+                        
+                        let chainCol = clamp(
+                            chainPrevious.column + awayDirection,
+                            min: safeMinColumn,
+                            max: safeMaxColumn
+                        )
+                        
+                        let chainCell = makeCell(column: chainCol, row: chainRow)
+                        
+                        guard isCellFree(chainCell) else { break }
+                        guard isReachable(from: chainPrevious, to: chainCell) else { break }
+                        guard !wouldStack(column: chainCol, row: chainRow) else { break }
+                        
+                        decorations.append(chainCell)
+                        placeCell(chainCell, into: &allCells)
+                        chainPrevious = chainCell
+                    }
+                }
                 break
             }
         }

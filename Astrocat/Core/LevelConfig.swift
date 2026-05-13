@@ -18,6 +18,7 @@ struct LevelConfig {
     
     // Generation tuning
     let decorationProbability: CGFloat
+    let chainProbability: CGFloat
     let maxPlatformsPerRow: Int
     
     static let defaultConfig = LevelConfig(
@@ -29,6 +30,7 @@ struct LevelConfig {
         platformSize: CGSize(width: 120, height: 40),
         floorSize: CGSize(width: 2500, height: 30),
         decorationProbability: 70,
+        chainProbability: 30,
         maxPlatformsPerRow: 3
     )
 }
