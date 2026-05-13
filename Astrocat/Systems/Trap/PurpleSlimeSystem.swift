@@ -19,7 +19,7 @@ class PurpleSlimeSystem: GKComponent, TrapProtocol {
             } else {
                 if let slowedDown = stateComp.stateMachine.state(forClass: SlowedDownState.self) {
                     slowedDown.duration = trapData.effectDuration
-                    stateComp.stateMachine.enter(ObscuredState.self)
+                    stateComp.stateMachine.enter(SlowedDownState.self)
                 }
             }
         }

@@ -14,6 +14,7 @@ class PlayerEntity: GKEntity {
         
         // Visuals
         node.texture?.filteringMode = .nearest
+        node.zPosition = 3
         addComponent(GKSKNodeComponent(node: node))
         
         // Movement

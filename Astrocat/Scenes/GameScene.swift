@@ -37,10 +37,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(mainCamera)
         self.camera = mainCamera
         
-        let overlay = SKSpriteNode(color: .black, size: self.size)
+        let overlay = SKSpriteNode(imageNamed: "Overlay")
         overlay.name = "DustOverlay"
         overlay.alpha = 0
-        overlay.zPosition = 100
+        overlay.zPosition = 5
+        overlay.setScale(8.5)
+        overlay.texture?.filteringMode = .nearest
         mainCamera.addChild(overlay)
     }
     

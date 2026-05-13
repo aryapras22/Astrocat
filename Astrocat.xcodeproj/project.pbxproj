@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Astrocat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		89357AFA2FA39EAD00EFEEC4 /* OhMeow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OhMeow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -53,7 +53,7 @@
 		89357AFB2FA39EAD00EFEEC4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */,
+				89357AFA2FA39EAD00EFEEC4 /* OhMeow.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -80,7 +80,7 @@
 			packageProductDependencies = (
 			);
 			productName = Wildsnare;
-			productReference = 89357AFA2FA39EAD00EFEEC4 /* Astrocat.app */;
+			productReference = 89357AFA2FA39EAD00EFEEC4 /* OhMeow.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -91,7 +91,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2640;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					89357AF92FA39EAD00EFEEC4 = {
 						CreatedOnToolsVersion = 26.4.1;
@@ -159,7 +159,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Verzional.Astrocat;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = OhMeow;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -191,7 +191,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Verzional.Astrocat;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = OhMeow;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -261,6 +261,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -318,6 +319,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
