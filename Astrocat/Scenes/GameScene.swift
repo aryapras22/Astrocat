@@ -74,15 +74,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .blackHole)
                 
-                let atlas = SKTextureAtlas(named: "BlackHole")
-                var frames: [SKTexture] = []
-                
-                for i in 1...atlas.textureNames.count {
-                    let textureName = "BH-Frame-\(i)"
-                    frames.append(atlas.textureNamed(textureName))
-                }
-                
-                sprite.run(SKAction.repeatForever(SKAction.animate(with: frames, timePerFrame: 0.1)))
+                self.animateSprite(sprite: sprite,
+                                   atlasName: "BlackHole",
+                                   prefix: "BH",
+                                   duration: 0.1)
                 
                 self.entities.append(trapEntity)
                 
@@ -93,15 +88,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .electricCoil)
                 
-                let atlas = SKTextureAtlas(named: "ElectricCoil")
-                var frames: [SKTexture] = []
-                
-                for i in 1...atlas.textureNames.count {
-                    let textureName = "EC-Frame-\(i)"
-                    frames.append(atlas.textureNamed(textureName))
-                }
-                
-                sprite.run(SKAction.repeatForever(SKAction.animate(with: frames, timePerFrame: 0.1)))
+                self.animateSprite(sprite: sprite,
+                                   atlasName: "ElectricCoil",
+                                   prefix: "EC",
+                                   duration: 0.1)
                 
                 self.entities.append(trapEntity)
             }
@@ -109,18 +99,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         enumerateChildNodes(withName: "//PurpleSlime") { node, _ in
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .purpleSlime)
+                
+                self.animateSprite(sprite: sprite,
+                                   atlasName: "PurpleSlime",
+                                   prefix: "PS",
+                                   duration: 0.1)
+                
                 self.entities.append(trapEntity)
             }
         }
         enumerateChildNodes(withName: "//ForceField") { node, _ in
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .forceField)
+                
+                self.animateSprite(sprite: sprite,
+                                   atlasName: "ForceField",
+                                   prefix: "FF",
+                                   duration: 0.1)
+                
                 self.entities.append(trapEntity)
             }
         }
         enumerateChildNodes(withName: "//CometDust") { node, _ in
             if let sprite = node as? SKSpriteNode {
                 let trapEntity = TrapEntity(node: sprite, type: .cometDust)
+                
+                self.animateSprite(sprite: sprite,
+                                   atlasName: "CometDust",
+                                   prefix: "CD",
+                                   duration: 0.1)
+                
                 self.entities.append(trapEntity)
             }
         }
@@ -183,5 +191,20 @@ extension GameScene {
                 interactionHandler.didContact(player: playerEntity)
             }
         }
+    }
+    
+    private func animateSprite(sprite: SKSpriteNode, atlasName: String, prefix: String, duration: TimeInterval = 0.1) {
+        let atlas = SKTextureAtlas(named: atlasName)
+        var frames: [SKTexture] = []
+        
+        let textureNames = atlas.textureNames.sorted()
+        
+        for i in 1...textureNames.count {
+            let textureName = "\(prefix)-Frame-\(i)"
+            frames.append(atlas.textureNamed(textureName))
+        }
+        
+        let animation = SKAction.animate(with: frames, timePerFrame: duration)
+        sprite.run(SKAction.repeatForever(animation))
     }
 }
