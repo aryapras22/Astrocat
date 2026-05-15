@@ -34,8 +34,7 @@ class MovementSystem: GKComponent {
         }
         
         // Handle Repelled Status
-        if moveData.repelDuration > 0 {
-            moveData.repelDuration -= seconds
+        if status.stateMachine.currentState is RepelledState {
             return
         }
 
