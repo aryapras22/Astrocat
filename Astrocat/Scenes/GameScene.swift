@@ -40,7 +40,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let overlay = SKSpriteNode(imageNamed: "Overlay")
         overlay.name = "DustOverlay"
         overlay.alpha = 0
-        overlay.zPosition = 5
+        overlay.zPosition = 3
         overlay.setScale(8.5)
         overlay.texture?.filteringMode = .nearest
         mainCamera.addChild(overlay)
@@ -54,10 +54,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let jumpButton = JumpNode(iconName: "chevron.up.2")
         
         joystick.position = CGPoint(x: -marginX, y: -marginY)
-        joystick.zPosition = 10
+        joystick.zPosition = 4
         
         jumpButton.position = CGPoint(x: marginX, y: -marginY)
-        jumpButton.zPosition = 10
+        jumpButton.zPosition = 4
         
         joystick.onDirectionChange = { [weak self] direction in
             self?.playerInput?.joystickDirection = direction

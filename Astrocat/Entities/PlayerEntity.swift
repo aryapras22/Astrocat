@@ -14,7 +14,7 @@ class PlayerEntity: GKEntity {
         
         // Visuals
         node.texture?.filteringMode = .nearest
-        node.zPosition = 3
+        node.zPosition = 1
         addComponent(GKSKNodeComponent(node: node))
         
         // Movement
@@ -37,7 +37,7 @@ class PlayerEntity: GKEntity {
         if let body = node.physicsBody {
             body.categoryBitMask = PhysicsCategory.player
             body.contactTestBitMask = PhysicsCategory.trap
-            body.collisionBitMask = PhysicsCategory.trap
+            body.collisionBitMask &= ~PhysicsCategory.trap
         }
     }
     

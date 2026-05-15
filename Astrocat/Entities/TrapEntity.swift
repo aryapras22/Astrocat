@@ -26,6 +26,7 @@ class TrapEntity: GKEntity {
         
         // Visuals
         node.texture?.filteringMode = .nearest
+        node.zPosition = 2
         addComponent(GKSKNodeComponent(node: node))
         
         // Component
@@ -48,6 +49,7 @@ class TrapEntity: GKEntity {
         // Physics
         if let body = node.physicsBody {
             body.categoryBitMask = PhysicsCategory.trap
+            body.collisionBitMask = 0
         }
     }
     
