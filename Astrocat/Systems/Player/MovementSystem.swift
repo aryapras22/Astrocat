@@ -25,8 +25,6 @@ class MovementSystem: GKComponent {
         if let slowedState = status.stateMachine.currentState as? SlowedDownState {
             currentSpeed *= slowedState.modifier
             currentImpulse *= slowedState.modifier
-            print(currentSpeed)
-            print(currentImpulse)
         }
         
         // Handle Stunned State
@@ -36,6 +34,10 @@ class MovementSystem: GKComponent {
         }
         
         // Handle Repelled Status
+        if moveData.repelDuration > 0 {
+            moveData.repelDuration -= seconds
+            return
+        }
 
         // Handle Movement Input
         let direction = input.joystickDirection

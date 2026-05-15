@@ -13,9 +13,23 @@ class ForceFieldSystem: GKComponent, TrapProtocol {
               trapData.type == .forceField
         else { return }
         
-        if let status = player.component(ofType: StatusComponent.self) {
-//            status.impulseForce = trapData.impulseForce
-//            status.status = .repelled
+        guard let trapNode = entity?.component(ofType: GKSKNodeComponent.self)?.node,
+              let scene = trapNode.scene as? GameScene,
+              let playerNode = scene.player?.component(ofType: GKSKNodeComponent.self)?.node
+        else { return }
+        
+        let dx = trapNode.position.x - playerNode.position.x
+        let dy = trapNode.position.y - playerNode.position.y
+        let distance = sqrt(dx * dx + dy * dy)
+        
+        if distance < trapData.radius {
+            if let moveComp = player.component(ofType: MovementComponent.self) {
+                moveComp.repelDuration = trapData.repelDuration
+            }
+            
+            let forceVector = CGVector(dx: -(dx / distance) * trapData.impulseForce,
+                                       dy: -(dy / distance) * trapData.impulseForce)
+            playerNode.physicsBody?.applyImpulse(forceVector)
         }
     }
 }
