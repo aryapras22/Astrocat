@@ -32,8 +32,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             hostingVC?.present(vc, animated: true)
         }
         
+        matchSystem.onStartMultiplayer = { [weak hostingVC] in
+            let gameVC = GameViewController()
+            gameVC.modalPresentationStyle = .fullScreen
+            hostingVC?.present(gameVC, animated: true)
+        }
+        
         window?.rootViewController = hostingVC
         window?.makeKeyAndVisible()
+        matchSystem.authenticateUser()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

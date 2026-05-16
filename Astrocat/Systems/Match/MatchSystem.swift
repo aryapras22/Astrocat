@@ -32,7 +32,7 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
     var onFinalResultsReceived: (([RaceResult]) -> Void)?
     var onPresentViewController: ((UIViewController) -> Void)?
     var onStartSolo: (()-> Void)?
-    
+    var onStartMultiplayer: (@MainActor () -> Void)?
 
     
     // MARK: Authentication
@@ -69,7 +69,7 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
     // MARK: Match Lifecycle
     func startMatch(mode: MatchMode){
         let request = GKMatchRequest()
-        
+
         switch mode {
         case .quickMatch (let playerCount):
             request.minPlayers = 2
@@ -86,7 +86,6 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
         vc.matchmakerDelegate = self
         
         onPresentViewController?(vc)
-        
     }
     
     func leaveMatch(){
@@ -148,8 +147,10 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
         let seed = UInt64.random(in: 0...UInt64.max)
         self.randomSeed = seed
         hasSentGameStart = true
-        send(GameMessage.gameStart(randomSeed: seed), with: .reliable)
         matchState = .inGame
+        send(GameMessage.gameStart(randomSeed: seed), with: .reliable)
+        
+        onStartMultiplayer?()
     }
     
     
@@ -173,6 +174,8 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
             switch message.messageType {
             case .gameStart:
                 randomSeed = message.randomSeed
+                matchState = .inGame
+                onStartMultiplayer?()
             case .playerReady:
                 if !readyPlayersIDs.contains(player.gamePlayerID){
                     readyPlayersIDs.insert(player.gamePlayerID)
@@ -185,12 +188,18 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
         
     }
     
-    nonisolated func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState){}
+    nonisolated func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState){
+        
+    }
     
-    nonisolated func match(_ match: GKMatch, didFailWithError error: Error?){}
+    nonisolated func match(_ match: GKMatch, didFailWithError error: Error?){
+        
+    }
     
     // MARK: GKLocalPlayerListener
-    nonisolated func player(_ player: GKPlayer, didAccept invite: GKInvite){}
+    nonisolated func player(_ player: GKPlayer, didAccept invite: GKInvite){
+        
+    }
     
     // MARK: GKMatchMakerViewControllerDelegate
     nonisolated func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
@@ -201,7 +210,6 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
     }
     
     nonisolated func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
-        
         Task {
             @MainActor in
             viewController.dismiss(animated: true)
@@ -218,8 +226,5 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
             startReadyHeartbeat()
         }
     }
-    
-    
-    
     
 }
