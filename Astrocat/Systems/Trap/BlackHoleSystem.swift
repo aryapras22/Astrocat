@@ -10,7 +10,8 @@ import GameplayKit
 class BlackHoleSystem: GKComponent {
     override func update(deltaTime seconds: TimeInterval) {
         guard let trapData = entity?.component(ofType: TrapComponent.self),
-              trapData.type == .blackHole
+              trapData.type == .blackHole,
+              !trapData.isOnCooldown
         else { return }
         
         guard let trapNode = entity?.component(ofType: GKSKNodeComponent.self)?.node,

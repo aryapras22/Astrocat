@@ -10,6 +10,12 @@ import GameplayKit
 class TrapComponent: GKComponent {
     let type: TrapType
     
+    // All Traps
+    var duration: TimeInterval = 5.0
+    var cooldown: TimeInterval = 3.0
+    var isOnCooldown: Bool = false
+    var lastActivationTime: TimeInterval = 0.0
+    
     // Black Hole & Force Field
     var radius: CGFloat = 150.0
     var pullForce: CGFloat = 1000.0

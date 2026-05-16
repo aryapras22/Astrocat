@@ -10,8 +10,14 @@ import GameplayKit
 class ForceFieldSystem: GKComponent, TrapProtocol {
     func didContact(player: PlayerEntity) {
         guard let trapData = entity?.component(ofType: TrapComponent.self),
-              trapData.type == .forceField
+              trapData.type == .forceField,
+              !trapData.isOnCooldown
         else { return }
+        
+        trapData.isOnCooldown = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + trapData.cooldown) {
+            trapData.isOnCooldown = false
+        }
         
         guard let trapNode = entity?.component(ofType: GKSKNodeComponent.self)?.node,
               let scene = trapNode.scene as? GameScene,

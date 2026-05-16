@@ -10,8 +10,14 @@ import GameplayKit
 class PurpleSlimeSystem: GKComponent, TrapProtocol {
     func didContact(player: PlayerEntity) {
         guard let trapData = entity?.component(ofType: TrapComponent.self),
-              trapData.type == .purpleSlime
+              trapData.type == .purpleSlime,
+              !trapData.isOnCooldown
         else { return }
+        
+        trapData.isOnCooldown = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + trapData.cooldown) {
+            trapData.isOnCooldown = false
+        }
         
         if let stateComp = player.component(ofType: StatusComponent.self) {
             if let current = stateComp.stateMachine.currentState as? SlowedDownState {
