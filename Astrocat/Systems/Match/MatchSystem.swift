@@ -96,12 +96,93 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
         
     }
     
+    // MARK: Ready Heartbeat
+    func startReadyHeartbeat(){
+        guard readyHeartbeatTimer == nil, !hasSentGameStart else { return }
+        readyHeartbeatTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task {
+                @MainActor [weak self] in
+                self?.sendReadyHeartbeat()
+            }
+        }
+    }
+    
+    func sendReadyHeartbeat(){
+        let localID = GKLocalPlayer.local.gamePlayerID
+        readyPlayersIDs.insert(localID)
+        send(GameMessage.playerReady(senderID: localID), with: .reliable)
+    }
+    
+    // MARK: Host Start Logic
+    func tryStartIfHost(){
+        guard isHost, match != nil, !hasSentGameStart else { return }
+        
+        scheduleHostStartTimeout()
+        
+        let expectedCount = (match?.players.count ?? 0) + 1
+        if readyPlayersIDs.count >= expectedCount && match?.expectedPlayerCount == 0 {
+            beginMatchStartBroadcast()
+        }
+        
+    }
+    
+    private func scheduleHostStartTimeout(){
+        guard hostStartTimeoutTimer == nil else { return }
+        
+        hostStartTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 8.0, repeats: false){ [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.forceStartIfHost()
+            }
+            
+        }
+    }
+    
+    private func forceStartIfHost() {
+        guard isHost, !hasSentGameStart else { return }
+        guard let match = match, !match.players.isEmpty else { return }
+        beginMatchStartBroadcast()
+    }
+    
+    private func beginMatchStartBroadcast() {
+        let seed = UInt64.random(in: 0...UInt64.max)
+        self.randomSeed = seed
+        hasSentGameStart = true
+        send(GameMessage.gameStart(randomSeed: seed), with: .reliable)
+        matchState = .inGame
+    }
+    
+    
     // MARK: Sending Messages
-    private func sendReliable(_ message: GameMessage){}
-    private func sendUnreliable(_ message: GameMessage){}
+    private func send(_ message: GameMessage, with mode: GKMatch.SendDataMode){
+        guard let match = match else {return}
+        do {
+            let data = try JSONEncoder().encode(message)
+            try match.sendData(toAllPlayers: data, with: mode)
+        } catch {
+            print("[MatchSystem] send error: \(error)")        }
+    }
     
     // MARK: GKMatchDelegate
-    nonisolated func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer){}
+    nonisolated func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer){
+        
+        Task {
+            @MainActor in
+            guard let message = try? JSONDecoder().decode(GameMessage.self, from: data) else {return}
+            
+            switch message.messageType {
+            case .gameStart:
+                randomSeed = message.randomSeed
+            case .playerReady:
+                if !readyPlayersIDs.contains(player.gamePlayerID){
+                    readyPlayersIDs.insert(player.gamePlayerID)
+                }
+                tryStartIfHost()
+            default:
+                break
+            }
+        }
+        
+    }
     
     nonisolated func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState){}
     
@@ -133,6 +214,7 @@ class MatchSystem: NSObject, ObservableObject, GKMatchDelegate, GKLocalPlayerLis
             self.isHost = sortedIDs.first == GKLocalPlayer.local.gamePlayerID
             
             matchState = .inLobby
+            startReadyHeartbeat()
         }
     }
     
