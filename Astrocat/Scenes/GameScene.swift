@@ -19,6 +19,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var generatedLevel: GeneratedLevel?
     private var previousPlayerBottomY: CGFloat?
     
+    // Walls
+    private let wallThickness: CGFloat = 20
+    
     var levelSeed: UInt64?
     let cameraOffsetY: CGFloat = 260
     
@@ -90,12 +93,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func setupWalls() {
-        let wallThickness: CGFloat = 20
         let wallHeight = levelConfig.finishLineY + 500
+        let playerHalfWidth: CGFloat = 32
         
         // Left wall
         let leftWall = SKNode()
-        leftWall.position = CGPoint(x: -wallThickness / 2, y: wallHeight / 2)
+        leftWall.position = CGPoint(x: playerHalfWidth - wallThickness / 2, y: wallHeight / 2)
         leftWall.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: wallThickness, height: wallHeight))
         leftWall.physicsBody?.isDynamic = false
         leftWall.physicsBody?.friction = 0
@@ -106,7 +109,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Right wall
         let rightWall = SKNode()
-        rightWall.position = CGPoint(x: levelConfig.mapWidth + wallThickness / 2, y: wallHeight / 2)
+        rightWall.position = CGPoint(x: levelConfig.mapWidth - playerHalfWidth + wallThickness / 2, y: wallHeight / 2)
         rightWall.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: wallThickness, height: wallHeight))
         rightWall.physicsBody?.isDynamic = false
         rightWall.physicsBody?.friction = 0
@@ -217,7 +220,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 y: node.position.y + cameraOffsetY
             )
             
-            let playerEntity = PlayerEntity(node: node, camera: mainCamera)
+            let cameraBounds = CGRect(
+                x: -wallThickness,
+                y: 0,
+                width: levelConfig.mapWidth + wallThickness * 2,
+                height: levelConfig.finishLineY
+            )
+            let playerEntity = PlayerEntity(
+                node: node,
+                camera: mainCamera,
+                cameraBounds: cameraBounds
+            )
             self.player = playerEntity
             self.entities.append(playerEntity)
             

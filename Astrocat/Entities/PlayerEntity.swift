@@ -9,7 +9,7 @@ import GameplayKit
 import SpriteKit
 
 class PlayerEntity: GKEntity {
-    init(node: SKSpriteNode, camera: SKCameraNode) {
+    init(node: SKSpriteNode, camera: SKCameraNode, cameraBounds: CGRect) {
         super.init()
         
         // Visuals
@@ -24,6 +24,7 @@ class PlayerEntity: GKEntity {
         
         // Camera
         let cameraComponent = CameraComponent(camera: camera)
+        cameraComponent.bounds = cameraBounds
         cameraComponent.target = node
         addComponent(cameraComponent)
         addComponent(CameraSystem())
