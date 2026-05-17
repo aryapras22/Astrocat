@@ -20,6 +20,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var previousPlayerBottomY: CGFloat?
     
     var levelSeed: UInt64?
+    let cameraOffsetY: CGFloat = 260
     
     // Debug
     private let showDebugGrid = false
@@ -213,7 +214,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             mainCamera.position = CGPoint(
                 x: node.position.x,
-                y: node.position.y + 180
+                y: node.position.y + cameraOffsetY
             )
             
             let playerEntity = PlayerEntity(node: node, camera: mainCamera)

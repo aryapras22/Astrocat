@@ -14,8 +14,13 @@ class CameraSystem: GKComponent {
               let target = data.target
         else { return }
         
-        let dx = target.position.x - data.cameraNode.position.x
-        let dy = target.position.y - data.cameraNode.position.y
+        let targetPosition = CGPoint(
+            x: target.position.x + data.offset.x,
+            y: target.position.y + data.offset.y
+        )
+        
+        let dx = targetPosition.x - data.cameraNode.position.x
+        let dy = targetPosition.y - data.cameraNode.position.y
         
         data.cameraNode.position.x += dx * data.lerpFactor
         data.cameraNode.position.y += dy * data.lerpFactor
