@@ -408,7 +408,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         super.didMove(to: view)
         self.physicsWorld.contactDelegate = self
-        removeSksTestArea()
+//        removeSksTestArea()
         setupCamera()
         setupBackground()
         setupFloor()

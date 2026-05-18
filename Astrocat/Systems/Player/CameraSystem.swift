@@ -19,18 +19,18 @@ class CameraSystem: GKComponent {
             y: target.position.y + data.offset.y
         )
         
-        if let bounds = data.bounds,
-           let scene = data.cameraNode.scene {
-            let halfWidth = scene.size.width / 2
-            let halfHeight = scene.size.height / 2
-            
-            let minX = bounds.minX + halfWidth
-            let maxX = bounds.maxX - halfWidth
-            let maxY = bounds.maxY - halfHeight
-            
-            targetPosition.x = clamp(targetPosition.x, min: minX, max: maxX)
-            targetPosition.y = min(targetPosition.y, maxY)
-        }
+//        if let bounds = data.bounds,
+//           let scene = data.cameraNode.scene {
+//            let halfWidth = scene.size.width / 2
+//            let halfHeight = scene.size.height / 2
+//            
+//            let minX = bounds.minX + halfWidth
+//            let maxX = bounds.maxX - halfWidth
+//            let maxY = bounds.maxY - halfHeight
+//            
+//            targetPosition.x = clamp(targetPosition.x, min: minX, max: maxX)
+//            targetPosition.y = min(targetPosition.y, maxY)
+//        }
         
         let dx = targetPosition.x - data.cameraNode.position.x
         let dy = targetPosition.y - data.cameraNode.position.y

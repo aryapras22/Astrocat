@@ -24,9 +24,7 @@ class RunningState: GKState {
         return stateClass == JumpingState.self || stateClass == IdleState.self
     }
     
-    override func didEnter(from previousState: GKState?) {
-        print("Start Run Animation")
-        
+    override func didEnter(from previousState: GKState?) {        
         guard let entity = locomotionComponent.entity,
               let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
               let sprite = nodeComponent.node as? SKSpriteNode else {

@@ -12,6 +12,10 @@ class StunnedState: GKState {
     var elapsed: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
     
+    lazy var stunnedAnimation: SKAction = {
+        return SKAction.buildAnimation(atlasName: "Electrified", prefix: "PE")
+    }()
+    
     init(component: StatusComponent) {
         self.statusComp = component
         super.init()
@@ -19,7 +23,14 @@ class StunnedState: GKState {
     
     override func didEnter(from previousState: GKState?) {
         elapsed = 0
-        print("Start Stunned Animation")
+        
+        guard let entity = statusComp.entity,
+              let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
+              let sprite = nodeComponent.node as? SKSpriteNode else {
+            return
+        }
+        
+        sprite.run(stunnedAnimation, withKey: "playerAnimation")
     }
     
     override func update(deltaTime seconds: TimeInterval) {

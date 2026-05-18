@@ -12,6 +12,10 @@ class RepelledState: GKState {
     var elapsed: TimeInterval = 0.0
     var duration: TimeInterval = 0.0
     
+    lazy var stressAnimation: SKAction = {
+        return SKAction.buildAnimation(atlasName: "N-Stress", prefix: "NS")
+    }()
+    
     init(component: StatusComponent) {
         self.statusComp = component
         super.init()
@@ -19,7 +23,14 @@ class RepelledState: GKState {
     
     override func didEnter(from previousState: GKState?) {
         elapsed = 0
-        print("Start Repelled Animation")
+        
+        guard let entity = statusComp.entity,
+              let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
+              let sprite = nodeComponent.node as? SKSpriteNode else {
+            return
+        }
+        
+        sprite.run(stressAnimation, withKey: "playerAnimation")
     }
     
     override func update(deltaTime seconds: TimeInterval) {

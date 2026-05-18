@@ -25,8 +25,6 @@ class JumpingState: GKState {
     }
 
     override func didEnter(from previousState: GKState?) {
-        print("Start Jump Animation")
-        
         guard let entity = locomotionComponent.entity,
               let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
               let sprite = nodeComponent.node as? SKSpriteNode else {
