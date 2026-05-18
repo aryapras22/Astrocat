@@ -294,7 +294,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             textureName = "BH-Frame-1"
             atlasName = "BlackHole"
             prefix = "BH"
-            size = CGSize(width: 168, height: 168)
+            size = CGSize(width: 128, height: 128)
         case .forceField:
             textureName = "FF-Frame-1"
             atlasName = "ForceField"
@@ -319,15 +319,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let node = SKSpriteNode(imageNamed: textureName)
         node.position = data.position
+        
+        if data.type == .purpleSlime {
+            node.position.y -= 12
+        }
+        
         node.size = size
         node.zPosition = 2
         node.texture?.filteringMode = .nearest
         
-        node.physicsBody = SKPhysicsBody(rectangleOf: size)
-        node.physicsBody?.isDynamic = false
-        node.physicsBody?.categoryBitMask = PhysicsCategory.trap
-        node.physicsBody?.contactTestBitMask = PhysicsCategory.player
-        node.physicsBody?.collisionBitMask = PhysicsCategory.none
+        switch data.type {
+        case .blackHole:
+            node.physicsBody = nil
+        case .forceField:
+            node.physicsBody = SKPhysicsBody(circleOfRadius: size.width / 2)
+        case .cometDust:
+            node.physicsBody = SKPhysicsBody(circleOfRadius: size.width * 0.35)
+        case .electricCoil, .purpleSlime:
+            if let texture = node.texture {
+                node.physicsBody = SKPhysicsBody(texture: texture, size: node.size)
+            }
+        }
+        
+        if let body = node.physicsBody {
+            body.isDynamic = false
+            body.affectedByGravity = false
+            body.allowsRotation = false
+            body.categoryBitMask = PhysicsCategory.trap
+            body.contactTestBitMask = PhysicsCategory.player
+            body.collisionBitMask = PhysicsCategory.none
+        }
         
         addChild(node)
         animateSprite(sprite: node, atlasName: atlasName, prefix: prefix)
