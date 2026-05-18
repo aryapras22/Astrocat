@@ -15,7 +15,8 @@ class LocomotionComponent: GKComponent {
         
         let states = [
             IdleState(component: self),
-            JumpingState(component: self)
+            JumpingState(component: self),
+            RunningState(component: self),
         ]
         
         self.stateMachine = GKStateMachine(states: states)

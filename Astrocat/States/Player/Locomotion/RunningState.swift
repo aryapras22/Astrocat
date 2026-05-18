@@ -1,18 +1,18 @@
 //
-//  IdleState.swift
+//  RunningState.swift
 //  Astrocat
 //
-//  Created by Valentino Manuel Gunawan on 02/05/26.
+//  Created by Valentino Manuel Gunawan on 18/05/26.
 //
 
 import GameplayKit
 import SpriteKit
 
-class IdleState: GKState {
+class RunningState: GKState {
     unowned let locomotionComponent: LocomotionComponent
     
-    lazy var idleAnimation: SKAction = {
-        return SKAction.buildAnimation(atlasName: "N-Idle", prefix: "NI")
+    lazy var runAnimation: SKAction = {
+        return SKAction.buildAnimation(atlasName: "N-Run", prefix: "NR")
     }()
     
     init(component: LocomotionComponent) {
@@ -21,11 +21,11 @@ class IdleState: GKState {
     }
     
     override func isValidNextState(_ stateClass: AnyClass) -> Bool {
-        return stateClass == JumpingState.self || stateClass == RunningState.self
+        return stateClass == JumpingState.self || stateClass == IdleState.self
     }
     
     override func didEnter(from previousState: GKState?) {
-        print("Start Idle Animation")
+        print("Start Run Animation")
         
         guard let entity = locomotionComponent.entity,
               let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
@@ -33,6 +33,6 @@ class IdleState: GKState {
             return
         }
         
-        sprite.run(idleAnimation, withKey: "playerAnimation")
+        sprite.run(runAnimation, withKey: "playerAnimation")
     }
 }

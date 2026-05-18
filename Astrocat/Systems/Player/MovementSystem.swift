@@ -45,6 +45,14 @@ class MovementSystem: GKComponent {
         // Handle Facing Direction
         if direction != 0 {
             node.xScale = direction > 0 ? abs(node.xScale) : -abs(node.xScale)
+            
+            if !(locomotion.stateMachine.currentState is JumpingState) {
+                locomotion.stateMachine.enter(RunningState.self)
+            }
+        } else {
+            if !(locomotion.stateMachine.currentState is JumpingState) {
+                locomotion.stateMachine.enter(IdleState.self)
+            }
         }
         
         // Handle Jump
