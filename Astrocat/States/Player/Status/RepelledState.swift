@@ -13,7 +13,7 @@ class RepelledState: GKState {
     var duration: TimeInterval = 0.0
     
     lazy var stressAnimation: SKAction = {
-        return SKAction.buildAnimation(atlasName: "N-Stress", prefix: "NS")
+        return SKAction.buildAnimation(atlasName: "N-Dizzy", prefix: "ND")
     }()
     
     init(component: StatusComponent) {

@@ -13,6 +13,10 @@ class SlowedDownState: GKState {
     var duration: TimeInterval = 0
     var modifier: CGFloat = 0.5
     
+    lazy var slimedAnimation: SKAction = {
+        return SKAction.buildAnimation(atlasName: "N-Slimed", prefix: "NS")
+    }()
+    
     init(component: StatusComponent) {
         self.statusComp = component
         super.init()
@@ -20,7 +24,14 @@ class SlowedDownState: GKState {
     
     override func didEnter(from previousState: GKState?) {
         elapsed = 0
-        print("Start Slowed Down Animation")
+        
+        guard let entity = statusComp.entity,
+              let nodeComponent = entity.component(ofType: GKSKNodeComponent.self),
+              let sprite = nodeComponent.node as? SKSpriteNode else {
+            return
+        }
+        
+        sprite.run(slimedAnimation, withKey: "playerAnimation")
     }
     
     override func update(deltaTime seconds: TimeInterval) {
