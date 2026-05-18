@@ -255,6 +255,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for platform in level.platforms {
             spawnPlatformEntity(platform)
         }
+        
+        for trap in level.traps {
+            spawnTrapEntity(trap)
+        }
     }
     
     private func spawnPlatformEntity(_ data: GeneratedPlatform) {
@@ -277,6 +281,72 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let platformEntity = PlatformEntity(node: node)
         entities.append(platformEntity)
+    }
+    
+    private func spawnTrapEntity(_ data: GeneratedTrap) {
+        let textureName: String
+        let atlasName: String
+        let prefix: String
+        let size: CGSize
+        
+        switch data.type {
+        case .blackHole:
+            textureName = "BH-Frame-1"
+            atlasName = "BlackHole"
+            prefix = "BH"
+            size = CGSize(width: 168, height: 168)
+        case .forceField:
+            textureName = "FF-Frame-1"
+            atlasName = "ForceField"
+            prefix = "FF"
+            size = CGSize(width: 64, height: 64)
+        case .purpleSlime:
+            textureName = "PS-Frame-1"
+            atlasName = "PurpleSlime"
+            prefix = "PS"
+            size = CGSize(width: 128, height: 128)
+        case .electricCoil:
+            textureName = "EC-Frame-1"
+            atlasName = "ElectricCoil"
+            prefix = "EC"
+            size = CGSize(width: 64, height: 64)
+        case .cometDust:
+            textureName = "CD-Frame-1"
+            atlasName = "CometDust"
+            prefix = "CD"
+            size = CGSize(width: 64, height: 64)
+        }
+        
+        let node = SKSpriteNode(imageNamed: textureName)
+        node.position = data.position
+        node.size = size
+        node.zPosition = 2
+        node.texture?.filteringMode = .nearest
+        
+        node.physicsBody = SKPhysicsBody(rectangleOf: size)
+        node.physicsBody?.isDynamic = false
+        node.physicsBody?.categoryBitMask = PhysicsCategory.trap
+        node.physicsBody?.contactTestBitMask = PhysicsCategory.player
+        node.physicsBody?.collisionBitMask = PhysicsCategory.none
+        
+        addChild(node)
+        animateSprite(sprite: node, atlasName: atlasName, prefix: prefix)
+        
+        let trapEntity = TrapEntity(node: node, type: data.type)
+        entities.append(trapEntity)
+        
+        switch data.type {
+        case .blackHole:
+            blackHoleSystem.addComponent(foundIn: trapEntity)
+        case .forceField:
+            forceFieldSystem.addComponent(foundIn: trapEntity)
+        case .purpleSlime:
+            purpleSlimeSystem.addComponent(foundIn: trapEntity)
+        case .electricCoil:
+            electricCoilSystem.addComponent(foundIn: trapEntity)
+        case .cometDust:
+            cometDustSystem.addComponent(foundIn: trapEntity)
+        }
     }
     
     private func setupDebugGrid() {
@@ -348,7 +418,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupWalls()
         setupDebugGrid()
         setupLevel()
-        setupTraps()
+//        setupTraps()
         setupPlayer()
         setupUI()
     }

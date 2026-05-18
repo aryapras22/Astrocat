@@ -20,8 +20,19 @@ enum PlatformType {
     case decoration
 }
 
+enum TrapPlacement {
+    case platform
+    case air
+}
+
+struct GeneratedTrap {
+    let position: CGPoint
+    let type: TrapType
+}
+
 struct GeneratedLevel {
     let platforms: [GeneratedPlatform]
+    let traps: [GeneratedTrap]
     let startPositions: [CGPoint]
 }
 
@@ -85,6 +96,9 @@ class LevelGenerator {
         // Decorations
         _ = generateDecorations(allCells: &allCells)
         
+        // Traps
+        let traps = generateTraps(allCells: allCells)
+        
 //        let platforms = allCells.map { createPlatform(from: $0) }
         
         let platforms = allCells.enumerated().map { index, cell -> GeneratedPlatform in
@@ -115,6 +129,7 @@ class LevelGenerator {
         
         return GeneratedLevel(
             platforms: platforms,
+            traps: traps,
             startPositions: startPositions
         )
     }
@@ -491,6 +506,79 @@ class LevelGenerator {
             textureName: "PlatformEarth",
             type: type
         )
+    }
+    
+    // MARK: - Trap Generation
+    private func generateTraps(allCells: [PlatformCell]) -> [GeneratedTrap] {
+        var traps: [GeneratedTrap] = []
+        let maxRow = config.gridRows - 3
+        
+        var trappedPlatformIndices = Set<Int>()
+        var trappedAirRows = Set<Int>()
+        
+        let trapConfigs: [(type: TrapType, count: Int, placement: TrapPlacement)] = [
+            (.blackHole, config.blackHoleCount, .air),
+            (.forceField, config.forceFieldCount, .air),
+            (.purpleSlime, config.purpleSlimeCount, .platform),
+            (.electricCoil, config.electricCoilCount, .platform),
+            (.cometDust, config.cometDustCount, .platform)
+        ]
+        
+        for trapConfig in trapConfigs {
+            var placed = 0
+            
+            switch trapConfig.placement {
+            case .platform:
+                var candidates = Array(1..<allCells.count).filter{ !trappedPlatformIndices.contains($0) }
+                shuffleArray(&candidates)
+                
+                for i in candidates {
+                    guard placed < trapConfig.count else { break }
+                    
+                    let pos = worldPosition(for: allCells[i])
+                    let trapPosition = CGPoint(
+                        x: pos.x,
+                        y: pos.y + config.platformSize.height / 2 + 16
+                    )
+                    traps.append(GeneratedTrap(position: trapPosition, type: trapConfig.type))
+                    trappedPlatformIndices.insert(i)
+                    placed += 1
+                }
+                
+            case .air:
+                var candidates = Array(3...maxRow).filter { !trappedAirRows.contains($0) }
+                shuffleArray(&candidates)
+                
+                for row in candidates {
+                    guard placed < trapConfig.count else { break }
+                    
+                    let currentCells = platformsByRow[row] ?? []
+                    let belowCells = platformsByRow[row - 1] ?? []
+                    guard !currentCells.isEmpty, !belowCells.isEmpty else { continue }
+                    
+                    let belowPos = worldPosition(for: belowCells[0])
+                    let currentPos = worldPosition(for: currentCells[0])
+                    
+                    let trapPosition = CGPoint(
+                        x: (belowPos.x + currentPos.x) / 2,
+                        y: (belowPos.y + currentPos.y) / 2
+                    )
+                    
+                    traps.append(GeneratedTrap(position: trapPosition, type: trapConfig.type))
+                    trappedAirRows.insert(row)
+                    placed += 1
+                }
+            }
+        }
+        
+        return traps
+    }
+    
+    private func shuffleArray<T>(_ array: inout [T]) {
+        for i in stride(from: array.count - 1, through: 1, by: -1) {
+            let j = randomSource.nextInt(upperBound: i + 1)
+            array.swapAt(i, j)
+        }
     }
 
     // MARK: - Random Helpers
