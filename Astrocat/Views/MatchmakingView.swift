@@ -22,7 +22,7 @@ struct MatchmakingView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(width: geo.size.width, height: geo.size.height)
-                    .clipped()
+//                    .clipped()
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -51,8 +51,8 @@ struct MatchmakingView: View {
                                 .easeInOut(duration: 2.2)
                                 .repeatForever(autoreverses: true)
                             ) {
-                                catOffset = -14
-                                catRotation = 2.5
+                                catOffset = -20
+                                catRotation = -3.0
                             }
                         }
 
@@ -72,9 +72,11 @@ struct MatchmakingView: View {
                             matchSystem.onStartSolo?()
                         }
                     }
-                    .padding(.horizontal, 28)
-                    .padding(.bottom, 48)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.horizontal, 30)
+                    .padding(.bottom, 65)
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
             }
         }
         .ignoresSafeArea()
@@ -98,27 +100,23 @@ struct AstroCatButton: View {
             }
         }) {
             ZStack {
-                // Button image asset (the golden pill background)
-                Image("button_bg") // your button asset
+                Image("btn_Primary")
                     .resizable()
-                    .scaledToFill()
-                    .frame(height: 62)
-                    .clipped()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 65)
 
-                // Pixel-font label
                 Text(title)
-                    .font(.custom("ArcadeClassic", size: 22)) // swap with your pixel font
-                    .foregroundColor(.black.opacity(0.85))
-                    .shadow(color: .white.opacity(0.3), radius: 0, x: 0, y: 1)
-                    // Fallback if custom font not loaded:
-                    // .font(.system(size: 20, weight: .black, design: .monospaced))
+                    .font(.custom("UpheavalTT-BRK-", size: 32))
+                    .foregroundColor(Color(red: 0 / 255, green: 16 / 255, blue: 75 / 255))
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
+            .frame(maxWidth: .infinity, minHeight: 65, maxHeight: 65, alignment: .center)
         }
         .frame(maxWidth: .infinity)
         .scaleEffect(isPressed ? 0.95 : 1.0)
         // Pixel-style drop shadow beneath button
-        .shadow(color: .black.opacity(0.5), radius: 0, x: 4, y: 4)
-        .buttonStyle(.plain)
+//        .shadow(color: .black.opacity(0.5), radius: 0, x: 4, y: 4)
+//        .buttonStyle(.plain)
     }
 }
 

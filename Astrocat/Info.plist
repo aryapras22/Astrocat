@@ -26,5 +26,10 @@
 		<key>UIColorName</key>
 		<string>Black</string>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>upheavtt.ttf</string>
+		<string>dogica.ttf</string>
+	</array>
 </dict>
 </plist>
