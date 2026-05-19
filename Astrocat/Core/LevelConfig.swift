@@ -39,10 +39,10 @@ struct LevelConfig {
         decorationProbability: 70,
         chainProbability: 30,
         maxPlatformsPerRow: 3,
-        blackHoleCount: 3,
-        forceFieldCount: 2,
+        blackHoleCount: 5,
+        forceFieldCount: 5,
         purpleSlimeCount: 5,
-        electricCoilCount: 4,
-        cometDustCount: 4
+        electricCoilCount: 5,
+        cometDustCount: 5
     )
 }

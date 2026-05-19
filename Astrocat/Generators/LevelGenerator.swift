@@ -511,62 +511,66 @@ class LevelGenerator {
     // MARK: - Trap Generation
     private func generateTraps(allCells: [PlatformCell]) -> [GeneratedTrap] {
         var traps: [GeneratedTrap] = []
-        let maxRow = config.gridRows - 3
+        let maxRow = config.gridRows - 5
         
         var trappedPlatformIndices = Set<Int>()
-        var trappedAirRows = Set<Int>()
+        var placedTrapPositions: [CGPoint] = []
+        let minTrapDistance: CGFloat = 250
         
-        let trapConfigs: [(type: TrapType, count: Int, placement: TrapPlacement)] = [
-            (.blackHole, config.blackHoleCount, .air),
-            (.forceField, config.forceFieldCount, .air),
-            (.purpleSlime, config.purpleSlimeCount, .platform),
-            (.electricCoil, config.electricCoilCount, .platform),
-            (.cometDust, config.cometDustCount, .platform)
-        ]
+        let trapRequests = buildTrapRequests()
         
-        for trapConfig in trapConfigs {
-            var placed = 0
+        for trapRequest in trapRequests {
+            var placed = false
             
-            switch trapConfig.placement {
+            switch trapRequest.placement {
             case .platform:
-                var candidates = Array(1..<allCells.count).filter{ !trappedPlatformIndices.contains($0) }
+                var candidates = Array(2..<allCells.count).filter{ !trappedPlatformIndices.contains($0) && allCells[$0].row < config.gridRows - 3 }
                 shuffleArray(&candidates)
                 
                 for i in candidates {
-                    guard placed < trapConfig.count else { break }
-                    
-                    let pos = worldPosition(for: allCells[i])
+                    let cell = allCells[i]
+                    let pos = worldPosition(for: cell)
                     let trapPosition = CGPoint(
                         x: pos.x,
                         y: pos.y + config.platformSize.height / 2 + 16
                     )
-                    traps.append(GeneratedTrap(position: trapPosition, type: trapConfig.type))
+                    
+                    guard isFarEnoughFromOtherTraps(
+                        trapPosition,
+                        placedPositions: placedTrapPositions,
+                        minDistance: minTrapDistance
+                    ) else {
+                        continue
+                    }
+                    
+                    traps.append(GeneratedTrap(position: trapPosition, type: trapRequest.type))
                     trappedPlatformIndices.insert(i)
-                    placed += 1
+                    placedTrapPositions.append(trapPosition)
+                    placed = true
+                    
+                    break
                 }
                 
             case .air:
-                var candidates = Array(3...maxRow).filter { !trappedAirRows.contains($0) }
+                var candidates = Array(3...maxRow)
                 shuffleArray(&candidates)
                 
                 for row in candidates {
-                    guard placed < trapConfig.count else { break }
-                    
-                    let currentCells = platformsByRow[row] ?? []
-                    let belowCells = platformsByRow[row - 1] ?? []
-                    guard !currentCells.isEmpty, !belowCells.isEmpty else { continue }
-                    
-                    let belowPos = worldPosition(for: belowCells[0])
-                    let currentPos = worldPosition(for: currentCells[0])
-                    
-                    let trapPosition = CGPoint(
-                        x: (belowPos.x + currentPos.x) / 2,
-                        y: (belowPos.y + currentPos.y) / 2
-                    )
-                    
-                    traps.append(GeneratedTrap(position: trapPosition, type: trapConfig.type))
-                    trappedAirRows.insert(row)
-                    placed += 1
+                    for _ in 0..<5 {
+                        guard let trapPosition = airTrapPositionNearPlatform(row: row) else { continue }
+                        
+                        if isFarEnoughFromOtherTraps(
+                            trapPosition,
+                            placedPositions: placedTrapPositions,
+                            minDistance: minTrapDistance
+                        ) {
+                            traps.append(GeneratedTrap(position: trapPosition, type: trapRequest.type))
+                            placedTrapPositions.append(trapPosition)
+                            placed = true
+                            break
+                        }
+                    }
+                    if placed { break }
                 }
             }
         }
@@ -574,11 +578,171 @@ class LevelGenerator {
         return traps
     }
     
+    private func buildTrapRequests() -> [(type: TrapType, placement: TrapPlacement)] {
+        var requests: [(type: TrapType, placement: TrapPlacement)] = []
+        
+        for _ in 0..<config.blackHoleCount {
+            requests.append((.blackHole, .air))
+        }
+        
+        for _ in 0..<config.forceFieldCount {
+            requests.append((.forceField, .air))
+        }
+        
+        for _ in 0..<config.purpleSlimeCount {
+            requests.append((.purpleSlime, .platform))
+        }
+        
+        for _ in 0..<config.electricCoilCount {
+            requests.append((.electricCoil, .platform))
+        }
+        
+        for _ in 0..<config.cometDustCount {
+            requests.append((.cometDust, .platform))
+        }
+        
+        shuffleArray(&requests)
+        return requests
+    }
+    
     private func shuffleArray<T>(_ array: inout [T]) {
         for i in stride(from: array.count - 1, through: 1, by: -1) {
             let j = randomSource.nextInt(upperBound: i + 1)
             array.swapAt(i, j)
         }
+    }
+    
+    private func airTrapPositionNearPlatform(row: Int) -> CGPoint? {
+        let nearbyRows = [row, row - 1, row + 1]
+        var nearbyCells: [PlatformCell] = []
+        
+        for nearbyRow in nearbyRows {
+            if let cells = platformsByRow[nearbyRow] {
+                nearbyCells.append(contentsOf: cells)
+            }
+        }
+        
+        guard !nearbyCells.isEmpty else {
+            return nil
+        }
+        
+        for _ in 0..<20 {
+            guard let baseCell = randomElement(from: nearbyCells) else {
+                return nil
+            }
+            
+            let basePos = worldPosition(for: baseCell)
+            var sides = [-1, 1]
+            shuffleArray(&sides)
+            
+            for side in sides {
+                let offsetX = CGFloat(nextRandomInt(90...150)) * CGFloat(side)
+                let offsetY = CGFloat(nextRandomInt(40...90))
+                
+                let margin = config.platformSize.width / 2 + 40
+                
+                let position = CGPoint(
+                    x: clamp(basePos.x + offsetX, min: margin, max: config.mapWidth - margin),
+                    y: basePos.y + offsetY
+                )
+                
+                if !isInJumpPath(position, row: row)  && !isTooCloseToAnyPlatform(position, row: row){
+                    return position
+                }
+            }
+        }
+        return nil
+    }
+    
+    private func isFarEnoughFromOtherTraps(
+        _ position: CGPoint,
+        placedPositions: [CGPoint],
+        minDistance: CGFloat
+    ) -> Bool {
+        for placed in placedPositions {
+            let dx = position.x - placed.x
+            let dy = position.y - placed.y
+            let distance = sqrt(dx * dx + dy * dy)
+            
+            if distance < minDistance {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    private func isInJumpPath(_ position: CGPoint, row: Int) -> Bool {
+        let trapX = position.x
+        let margin: CGFloat = 100
+
+        let checkRows = [row - 2, row - 1, row, row + 1, row + 2]
+
+        var belowCells: [PlatformCell] = []
+        var aboveCells: [PlatformCell] = []
+
+        for r in checkRows {
+            guard let cells = platformsByRow[r] else { continue }
+            for cell in cells {
+                let cellY = worldPosition(for: cell).y
+                if cellY < position.y {
+                    belowCells.append(cell)
+                } else {
+                    aboveCells.append(cell)
+                }
+            }
+        }
+
+        // Check if trap is between any below-above platform pair
+        for below in belowCells {
+            let belowX = worldPosition(for: below).x
+
+            for above in aboveCells {
+                let aboveX = worldPosition(for: above).x
+
+                let minX = min(belowX, aboveX) - margin
+                let maxX = max(belowX, aboveX) + margin
+
+                if trapX >= minX && trapX <= maxX {
+                    return true
+                }
+            }
+        }
+
+        // Check if trap is directly above or below any platform
+        for r in checkRows {
+            guard let cells = platformsByRow[r] else { continue }
+            for cell in cells {
+                let cellX = worldPosition(for: cell).x
+                if abs(trapX - cellX) < margin {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+    
+    private func isTooCloseToAnyPlatform(_ position: CGPoint, row: Int) -> Bool {
+        let minDistance: CGFloat = 150 // from center of platform
+        let checkRows = [row - 1, row, row + 1]
+
+        for checkRow in checkRows {
+            guard let cells = platformsByRow[checkRow] else { continue }
+
+            for cell in cells {
+                let platPos = worldPosition(for: cell)
+                let dx = abs(position.x - platPos.x)
+                let dy = abs(position.y - platPos.y)
+                let distance = sqrt(dx * dx + dy * dy)
+
+                if distance < minDistance {
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 
     // MARK: - Random Helpers
@@ -597,11 +761,21 @@ class LevelGenerator {
         return lower + randomSource.nextInt(upperBound: count)
     }
     
+    private func randomElement<T>(from array: [T]) -> T? {
+        guard !array.isEmpty else { return nil }
+        let index = randomSource.nextInt(upperBound: array.count)
+        return array[index]
+    }
+    
     private func lerp(_ a: CGFloat, _ b: CGFloat, _ t: CGFloat) -> CGFloat {
         a + (b - a) * min(max(t, 0), 1)
     }
     
     private func clamp(_ value: Int, min minValue: Int, max maxValue: Int) -> Int {
+        Swift.min(Swift.max(value, minValue), maxValue)
+    }
+    
+    private func clamp(_ value: CGFloat, min minValue: CGFloat, max maxValue: CGFloat) -> CGFloat {
         Swift.min(Swift.max(value, minValue), maxValue)
     }
 }
